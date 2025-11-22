@@ -52,7 +52,8 @@ Frontend
 --- Docker
 --- Python
 
-Look and feel is non cluttered and modern with dark background. Top will have a small bar showing the name of the application and the version. 
+Look and feel is non-cluttered and modern with dark background with smooth animations. Top will have a small bar showing the name of the application and the version. An animated diabetes-ai icon will be displayed in the top left corner, spinning and randomly changing color slowly
+
 - Landing page - Introducing the personas and their roles and expertise along with pictures. The personas are presented as four squares with a picture and a short description. 
 Below is a disclaimer saying the resposibility and medical actions are not taken by the application and the personas and are supposed to be used as advice. 
 Also an explaination how the service works. Emanuel is ready for immediate interaction with a link to his page.
