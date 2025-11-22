@@ -9,42 +9,61 @@ import DiabetesAIIcon from '../components/DiabetesAIIcon';
 const LandingPage: React.FC = () => {
     return (
         <div className="container">
-            <header style={{ textAlign: 'center', marginTop: '3rem', marginBottom: '5rem' }}>
-                <div style={{ marginBottom: '2rem' }}>
-                    <DiabetesAIIcon size={120} interactive={true} />
-                </div>
-                <h1 className="text-pop" style={{ fontSize: '4rem', marginBottom: '1rem', lineHeight: '1' }}>
-                    NS AI
-                </h1>
-                <p style={{
-                    fontSize: '1.5rem',
-                    color: 'var(--secondary-color)',
-                    fontWeight: '600',
-                    marginTop: '1rem'
-                }}>
-                    The microbolus generation
-                </p>
-                <p style={{
-                    fontSize: '1rem',
-                    color: 'rgba(248, 250, 252, 0.7)',
-                    maxWidth: '700px',
-                    margin: '2rem auto 0',
-                    lineHeight: '1.6'
-                }}>
-                    AI-powered analysis and management for Type 1 diabetes using Nightscout and Loop.
-                    Built on the incredible work of the open source community.
-                </p>
-            </header>
+            {/* Framed Hero Section */}
+            <div style={{
+                border: '2px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '24px',
+                padding: '3rem 2rem',
+                marginTop: '2rem',
+                marginBottom: '4rem',
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05))',
+                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.15)'
+            }}>
+                <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <DiabetesAIIcon size={120} interactive={true} />
+                    </div>
+                    <h1 className="text-pop" style={{ fontSize: '4rem', marginBottom: '1rem', lineHeight: '1' }}>
+                        NS AI
+                    </h1>
+                    <p style={{
+                        fontSize: '1.5rem',
+                        color: 'var(--secondary-color)',
+                        fontWeight: '600',
+                        marginTop: '1rem'
+                    }}>
+                        The microbolus generation
+                    </p>
+                    <p style={{
+                        fontSize: '1.1rem',
+                        color: 'rgba(248, 250, 252, 0.85)',
+                        maxWidth: '750px',
+                        margin: '2.5rem auto 0',
+                        lineHeight: '1.8',
+                        textAlign: 'center',
+                        fontWeight: '400'
+                    }}>
+                        AI-powered analysis and management for Type 1 diabetes using Nightscout and Loop.
+                        <br />
+                        Built on the incredible work of the open source community.
+                    </p>
+                </header>
+            </div>
+
+            <h2 style={{
+                textAlign: 'center',
+                fontSize: '2.5rem',
+                marginBottom: '4rem',
+                marginTop: '4rem',
+                color: 'var(--primary-color)',
+                fontStyle: 'italic',
+                fontWeight: '500',
+                letterSpacing: '0.5px'
+            }}>
+                Meet Your AI Personas
+            </h2>
 
             <section style={{ marginBottom: '5rem' }}>
-                <h2 style={{
-                    textAlign: 'center',
-                    fontSize: '2.5rem',
-                    marginBottom: '4rem',
-                    color: 'var(--primary-color)'
-                }}>
-                    Meet Your AI Personas
-                </h2>
 
                 {/* Documentation Category */}
                 <div style={{ marginBottom: '4rem' }}>

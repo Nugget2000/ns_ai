@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8085';
 
 export interface HealthResponse {
     status: string;
@@ -6,6 +6,10 @@ export interface HealthResponse {
 
 export interface VersionResponse {
     version: string;
+}
+
+export interface PageLoadResponse {
+    count: number;
 }
 
 export const getHealth = async (): Promise<HealthResponse> => {
@@ -29,5 +33,17 @@ export const getVersion = async (): Promise<VersionResponse> => {
         return await response.json();
     } catch (error) {
         throw new Error('Unable to fetch version');
+    }
+};
+
+export const getPageLoad = async (): Promise<PageLoadResponse> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/page-load`);
+        if (!response.ok) {
+            throw new Error('Page load tracking failed');
+        }
+        return await response.json();
+    } catch (error) {
+        throw new Error('Unable to fetch page load count');
     }
 };

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getHealth, getVersion } from '../api';
+import { getHealth, getVersion, getPageLoad } from '../api';
 
 type HealthStatus = 'loading' | 'healthy' | 'unhealthy';
 
 const BackendStatus: React.FC = () => {
     const [status, setStatus] = useState<HealthStatus>('loading');
     const [version, setVersion] = useState<string>('');
+    const [pageCount, setPageCount] = useState<number | null>(null);
     const [statusMessage, setStatusMessage] = useState<string>('Checking backend...');
 
     const checkBackend = async () => {
@@ -29,12 +30,22 @@ const BackendStatus: React.FC = () => {
         }
     };
 
+    const trackPageLoad = async () => {
+        try {
+            const pageLoadData = await getPageLoad();
+            setPageCount(pageLoadData.count);
+        } catch (error) {
+            console.error('Failed to track page load:', error);
+        }
+    };
+
     useEffect(() => {
         // Initial check
         checkBackend();
+        trackPageLoad();
 
-        // Auto-refresh every 10 seconds
-        const interval = setInterval(checkBackend, 10000);
+        // Auto-refresh health only every 60 seconds
+        const interval = setInterval(checkBackend, 60000);
 
         return () => clearInterval(interval);
     }, []);
@@ -146,6 +157,18 @@ const BackendStatus: React.FC = () => {
             {getStatusIcon()}
             {version && (
                 <span className="backend-version">v{version}</span>
+            )}
+            {pageCount !== null && (
+                <>
+                    <span style={{
+                        margin: '0 0.5rem',
+                        color: 'rgba(248, 250, 252, 0.3)',
+                        fontSize: '0.9rem'
+                    }}>•</span>
+                    <span className="backend-version" title={`Total page visits: ${pageCount}`}>
+                        👁️ {pageCount.toLocaleString()}
+                    </span>
+                </>
             )}
         </div>
     );
