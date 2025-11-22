@@ -1,4 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
-firebase-admin
+google-cloud-firestore
+pydantic-settings
