@@ -22,7 +22,7 @@ const LandingPage: React.FC = () => {
                     fontWeight: '600',
                     marginTop: '1rem'
                 }}>
-                    The microbolus generation is here
+                    The microbolus generation
                 </p>
                 <p style={{
                     fontSize: '1rem',

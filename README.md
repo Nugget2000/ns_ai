@@ -1,6 +1,6 @@
 # ns_ai
 An ai powered application for analyzing and managing type 1 diabetes using Nightscout and loop using different personas with different roles and expertise.
-The tagline is a funny twist on "We are not waiting", with ai this cleverly becomes "The microbolus generation is here".
+The tagline is a funny twist on "We are not waiting", with ai this cleverly becomes "The microbolus generation".
 It is clear that the webpage is built on the fantastic work of the open source community and that we are all for ever grateful for the tireless work done by all contributors. 
 
 Personas:
