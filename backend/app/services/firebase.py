@@ -1,13 +1,5 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
-from firebase_admin import credentials, firestore
-
-app = FastAPI(
-    title="NS AI Backend",
-    description="Backend for NS AI application",
-    version="0.1"
-)
+from firebase_admin import firestore
 
 # Initialize Firebase
 # Note: This uses Application Default Credentials (ADC)
@@ -17,25 +9,7 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
-
-@app.get("/version")
-async def get_version():
-    return {"version": "0.1"}
-
-@app.get("/page-load")
-async def track_page_load():
+async def increment_visitor_count() -> int:
     """
     Retrieves the current page load count from Firestore,
     increments it by one, and returns the new count.
@@ -61,4 +35,4 @@ async def track_page_load():
     transaction = db.transaction()
     count = increment_counter(transaction)
     
-    return {"count": count}
+    return count
