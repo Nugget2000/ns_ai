@@ -1,0 +1,16 @@
+# Service account key
+service-account-key.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-wheel-metadata/
+.idea/
+
+# Docker
+.dockerignore

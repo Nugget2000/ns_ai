@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from models.schemas import CountResponse, HealthResponse, VersionResponse
-from services.firebase import increment_visitor_count
+from ..models.schemas import CountResponse, HealthResponse, VersionResponse
+from ..services.firebase import increment_visitor_count
 
 router = APIRouter()
 

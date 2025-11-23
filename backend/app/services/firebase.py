@@ -1,11 +1,21 @@
+import os
+import json
 import firebase_admin
-from firebase_admin import firestore
+from firebase_admin import credentials, firestore
 
 # Initialize Firebase
-# Note: This uses Application Default Credentials (ADC)
-# For production, you should use a service account key file
+# This uses a service account key file if GOOGLE_APPLICATION_CREDENTIALS is set,
+# otherwise it falls back to Application Default Credentials (ADC).
+cred = None
+if 'GOOGLE_CREDENTIALS_CONTENT' in os.environ:
+    creds_json = os.environ.get('GOOGLE_CREDENTIALS_CONTENT')
+    creds_dict = json.loads(creds_json)
+    cred = credentials.Certificate(creds_dict)
+elif 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
+    cred = credentials.Certificate(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+
 if not firebase_admin._apps:
-    firebase_admin.initialize_app()
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 

@@ -1,3 +1,2 @@
 #!/bin/bash
-cd app
-uvicorn main:app --reload --port 8085
+uvicorn app.main:app --reload --port 8085

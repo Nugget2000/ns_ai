@@ -1,0 +1,15 @@
+# Copy this file to terraform.tfvars and update with your values
+# terraform.tfvars is gitignored to prevent committing sensitive data
+
+project_id = "ns-ai-project"
+region     = "europe-north2"
+
+# Optional: Customize instance scaling
+# backend_min_instances  = 0
+# backend_max_instances  = 2
+# frontend_min_instances = 0
+# frontend_max_instances = 2
+
+# Optional: Override Docker images (if using different tags or registries)
+# backend_image  = "europe-north2-docker.pkg.dev/ns-ai-project/ns-ai-repo/backend:v1.0.0"
+# frontend_image = "europe-north2-docker.pkg.dev/ns-ai-project/ns-ai-repo/frontend:v1.0.0"
