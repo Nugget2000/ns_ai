@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8085';
+/*const API_BASE_URL = 'http://localhost:8080';*/
+const API_BASE_URL = 'https://ns-ai-backend-949800367114.europe-north2.run.app';
 
 export interface HealthResponse {
     status: string;
