@@ -182,3 +182,33 @@ resource "google_cloud_run_v2_service_iam_member" "frontend_noauth" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# Service Account for GitHub Actions
+resource "google_service_account" "github_actions_sa" {
+  account_id   = "github-actions-sa"
+  display_name = "GitHub Actions Service Account"
+  description  = "Service account for GitHub Actions CI/CD pipeline"
+}
+
+# Grant Artifact Registry Writer role to GitHub Actions SA
+resource "google_artifact_registry_repository_iam_member" "github_actions_artifact_writer" {
+  project    = var.project_id
+  location   = google_artifact_registry_repository.ns_ai_repo.location
+  repository = google_artifact_registry_repository.ns_ai_repo.name
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${google_service_account.github_actions_sa.email}"
+}
+
+# Grant Cloud Run Admin role to GitHub Actions SA
+resource "google_project_iam_member" "github_actions_run_admin" {
+  project = var.project_id
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${google_service_account.github_actions_sa.email}"
+}
+
+# Grant Service Account User role to GitHub Actions SA (to act as runtime SAs)
+resource "google_project_iam_member" "github_actions_sa_user" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.github_actions_sa.email}"
+}

@@ -27,3 +27,8 @@ output "frontend_service_account" {
   description = "Frontend service account email"
   value       = google_service_account.frontend_sa.email
 }
+
+output "github_actions_service_account" {
+  description = "GitHub Actions service account email"
+  value       = google_service_account.github_actions_sa.email
+}
