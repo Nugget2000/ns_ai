@@ -21,10 +21,11 @@ KEY_CONTENT=$(cat "$KEY_FILE")
 docker build -t backend .
 
 # Run the Docker container
-# This passes the key file content as an environment variable.
+# This passes the key file content and GEMINI_API_KEY as environment variables.
 # It also maps container port 8000 to host port 8080.
 docker run --rm -it \
   --name backend \
   -p 8080:8000 \
   -e GOOGLE_CREDENTIALS_CONTENT="$KEY_CONTENT" \
+  -e GEMINI_API_KEY="$GEMINI_API_KEY" \
   backend

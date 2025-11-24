@@ -5,7 +5,8 @@
 docker build -t frontend .
 
 # Run the Docker container
+# Using --network host so the container can access localhost:8080 (backend)
 docker run --rm -it \
   --name frontend \
-  -p 80:5173 \
+  --network host \
   frontend

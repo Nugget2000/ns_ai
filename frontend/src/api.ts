@@ -1,5 +1,5 @@
-/*const API_BASE_URL = 'http://localhost:8080';*/
-const API_BASE_URL = 'https://ns-ai-backend-949800367114.europe-north2.run.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
 
 export interface HealthResponse {
     status: string;
