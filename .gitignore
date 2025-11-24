@@ -227,3 +227,4 @@ crash.*.log
 # CLI configuration files
 .terraformrc
 terraform.rc
+key.json
