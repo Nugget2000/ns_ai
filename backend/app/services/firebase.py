@@ -17,17 +17,23 @@ if 'GOOGLE_CREDENTIALS_BASE64' in os.environ:
         creds_json = base64.b64decode(os.environ.get('GOOGLE_CREDENTIALS_BASE64')).decode('utf-8')
         creds_dict = json.loads(creds_json)
         cred = credentials.Certificate(creds_dict)
+        logging.info(f"Firebase credentials loaded from GOOGLE_CREDENTIALS_BASE64 with a length of {len(creds_json)} characters")
     except Exception as e:
-        print(f"Error loading credentials from GOOGLE_CREDENTIALS_BASE64: {e}")
+        logging.error(f"Error loading credentials from GOOGLE_CREDENTIALS_BASE64: {e}")
         # Fallback to other methods if this fails, or let it crash if this was the intended method
         pass
 
 if not cred and 'GOOGLE_CREDENTIALS_CONTENT' in os.environ:
+    logging.info(f"Firebase credentials loaded from GOOGLE_CREDENTIALS_CONTENT with the length of {len(os.environ.get('GOOGLE_CREDENTIALS_CONTENT'))} characters")
     creds_json = os.environ.get('GOOGLE_CREDENTIALS_CONTENT')
     creds_dict = json.loads(creds_json)
     cred = credentials.Certificate(creds_dict)
 elif not cred and 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
+    logging.info(f"Firebase credentials loaded from GOOGLE_APPLICATION_CREDENTIALS with the length of {len(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))} characters")
     cred = credentials.Certificate(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+else:
+    logging.error("No Firebase credentials found")
+    raise HTTPException(status_code=500, detail="No Firebase credentials found")
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
