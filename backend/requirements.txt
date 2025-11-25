@@ -3,3 +3,4 @@ uvicorn
 pydantic
 firebase-admin
 google-generativeai
+google-cloud-logging

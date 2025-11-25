@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from ..models.schemas import CountResponse, HealthResponse, VersionResponse
 from ..services.firebase import increment_visitor_count
 from ..services.gemini import generate_emanuel_response
+from ..core.config import settings
 
 router = APIRouter()
 
@@ -13,7 +14,7 @@ async def health_check():
 
 @router.get("/version", response_model=VersionResponse)
 async def get_version():
-    return {"version": "0.1"}
+    return {"version": settings.VERSION}
 
 @router.get("/page-load", response_model=CountResponse)
 async def track_page_load():

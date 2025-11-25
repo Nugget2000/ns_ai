@@ -1,7 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .api.routes import router
+from .core.logging import setup_logging
+import logging
+
+# Setup logging
+setup_logging()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -21,3 +27,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(router)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logging.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error"},
+    )
