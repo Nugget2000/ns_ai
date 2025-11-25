@@ -17,6 +17,16 @@ fi
 # Read the key file content
 KEY_CONTENT=$(cat "$KEY_FILE")
 
+# Load .env file if it exists
+if [ -f .env ]; then
+  export $(cat .env | xargs)
+fi
+
+if [ -z "$GEMINI_API_KEY" ]; then
+    echo "Error: GEMINI_API_KEY is not set. Please set it in .env or export it."
+    exit 1
+fi
+
 # Build the Docker image
 docker build -t backend .
 

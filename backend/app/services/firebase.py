@@ -38,23 +38,27 @@ async def increment_visitor_count() -> int:
     """
     # Reference to the visitor counter document
     doc_ref = db.collection("ns_ai").document("visitor_counter")
-    
+
     # Use a transaction to ensure atomic read-increment-write
     @firestore.transactional
     def increment_counter(transaction):
         snapshot = doc_ref.get(transaction=transaction)
-        
+
         if snapshot.exists:
             current_count = snapshot.get("count")
         else:
             current_count = 0
-        
+
         new_count = current_count + 1
         transaction.set(doc_ref, {"count": new_count})
         return new_count
-    
-    # Execute the transaction
-    transaction = db.transaction()
-    count = increment_counter(transaction)
-    
-    return count
+
+    try:
+        # Execute the transaction
+        transaction = db.transaction()
+        count = increment_counter(transaction)
+        return count
+    except Exception as e:
+        logging.error(f"Error incrementing visitor count: {e}")
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
