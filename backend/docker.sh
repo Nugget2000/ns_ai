@@ -25,7 +25,7 @@ docker build -t backend .
 # It also maps container port 8000 to host port 8080.
 docker run --rm -it \
   --name backend \
-  -p 8080:8000 \
+  -p 8000:8000 \
   -e GOOGLE_CREDENTIALS_CONTENT="$KEY_CONTENT" \
   -e GEMINI_API_KEY="$GEMINI_API_KEY" \
   backend
