@@ -47,6 +47,14 @@ jobs:
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:latest
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:latest
 
+      - name: Prepare Secrets
+        id: secrets
+        shell: bash
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "GCP_SA_KEY_BASE64=$(echo -n "$GCP_SA_KEY" | base64 -w 0)" >> $GITHUB_OUTPUT
+
       - name: Deploy Backend to Cloud Run
         id: deploy-backend
         uses: google-github-actions/deploy-cloudrun@v2
@@ -61,7 +69,7 @@ jobs:
             PROJECT_ID=${{ env.PROJECT_ID }}
             ENVIRONMENT=production
             GEMINI_API_KEY=${{ env.GEMINI_API_KEY }}
-            GOOGLE_CREDENTIALS_CONTENT=${{ env.GCP_SA_KEY }}
+            GOOGLE_CREDENTIALS_BASE64=${{ steps.secrets.outputs.GCP_SA_KEY_BASE64 }}
 
       - name: Deploy Frontend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2

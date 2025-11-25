@@ -1,5 +1,7 @@
 import os
 import json
+import base64
+import binascii
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -7,11 +9,21 @@ from firebase_admin import credentials, firestore
 # This uses a service account key file if GOOGLE_APPLICATION_CREDENTIALS is set,
 # otherwise it falls back to Application Default Credentials (ADC).
 cred = None
-if 'GOOGLE_CREDENTIALS_CONTENT' in os.environ:
+if 'GOOGLE_CREDENTIALS_BASE64' in os.environ:
+    try:
+        creds_json = base64.b64decode(os.environ.get('GOOGLE_CREDENTIALS_BASE64')).decode('utf-8')
+        creds_dict = json.loads(creds_json)
+        cred = credentials.Certificate(creds_dict)
+    except Exception as e:
+        print(f"Error loading credentials from GOOGLE_CREDENTIALS_BASE64: {e}")
+        # Fallback to other methods if this fails, or let it crash if this was the intended method
+        pass
+
+if not cred and 'GOOGLE_CREDENTIALS_CONTENT' in os.environ:
     creds_json = os.environ.get('GOOGLE_CREDENTIALS_CONTENT')
     creds_dict = json.loads(creds_json)
     cred = credentials.Certificate(creds_dict)
-elif 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
+elif not cred and 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
     cred = credentials.Certificate(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
 
 if not firebase_admin._apps:
