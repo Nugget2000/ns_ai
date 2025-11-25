@@ -1,9 +1,12 @@
 import os
 import json
 import base64
-import binascii
+import logging
+import traceback
 import firebase_admin
+from fastapi import HTTPException
 from firebase_admin import credentials, firestore
+
 
 # Initialize Firebase
 # This uses a service account key file if GOOGLE_APPLICATION_CREDENTIALS is set,
@@ -36,6 +39,7 @@ async def increment_visitor_count() -> int:
     Retrieves the current page load count from Firestore,
     increments it by one, and returns the new count.
     """
+    logging.info("Incrementing visitor count")
     # Reference to the visitor counter document
     doc_ref = db.collection("ns_ai").document("visitor_counter")
 
@@ -59,6 +63,8 @@ async def increment_visitor_count() -> int:
         count = increment_counter(transaction)
         return count
     except Exception as e:
+
+
         logging.error(f"Error incrementing visitor count: {e}")
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
