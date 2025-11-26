@@ -66,83 +66,114 @@ const EmanuelPage: React.FC = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', height: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <h1>Chat with Emanuel</h1>
-                <p style={{ color: '#666' }}>Ask me anything about Nightscout and Loop documentation.</p>
+        <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', height: '85vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <h1 className="text-pop" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Chat with Emanuel</h1>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.1rem' }}>Your expert guide to Nightscout and Loop documentation.</p>
             </div>
 
             <div className="chat-window" style={{
                 flex: 1,
                 overflowY: 'auto',
-                border: '1px solid #ddd',
-                borderRadius: '12px',
-                padding: '20px',
-                backgroundColor: '#f9f9f9',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                padding: '25px',
+                backgroundColor: 'var(--card-bg)',
                 marginBottom: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '15px'
+                gap: '20px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
             }}>
                 {messages.length === 0 && (
-                    <div style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>
-                        <p>No messages yet. Start the conversation!</p>
+                    <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)', marginTop: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                        <img src="/src/assets/emanuel.png" alt="Emanuel" style={{ width: '100px', height: '100px', borderRadius: '50%', opacity: 0.6, filter: 'grayscale(50%)' }} />
+                        <p style={{ fontSize: '1.2rem' }}>Hello! I'm Emanuel. How can I help you today?</p>
                     </div>
                 )}
 
                 {messages.map((msg, index) => (
                     <div key={index} style={{
                         alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        maxWidth: '70%',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        backgroundColor: msg.role === 'user' ? '#007bff' : '#ffffff',
-                        color: msg.role === 'user' ? '#ffffff' : '#333333',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        borderBottomRightRadius: msg.role === 'user' ? '4px' : '12px',
-                        borderBottomLeftRadius: msg.role === 'emanuel' ? '4px' : '12px'
+                        maxWidth: '80%',
+                        display: 'flex',
+                        gap: '12px',
+                        flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
                     }}>
-                        <div style={{ fontSize: '0.8em', marginBottom: '4px', opacity: 0.8 }}>
-                            {msg.role === 'user' ? 'You' : 'Emanuel'}
+                        {msg.role === 'emanuel' && (
+                            <img
+                                src="/src/assets/emanuel.png"
+                                alt="Emanuel"
+                                style={{
+                                    width: '35px',
+                                    height: '35px',
+                                    borderRadius: '50%',
+                                    marginTop: '5px',
+                                    border: '2px solid var(--primary-color)'
+                                }}
+                            />
+                        )}
+
+                        <div style={{
+                            padding: '15px 20px',
+                            borderRadius: '18px',
+                            backgroundColor: msg.role === 'user' ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.05)',
+                            color: 'var(--text-color)',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            borderBottomRightRadius: msg.role === 'user' ? '4px' : '18px',
+                            borderBottomLeftRadius: msg.role === 'emanuel' ? '4px' : '18px',
+                            border: msg.role === 'emanuel' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+                        }}>
+                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{msg.content}</div>
                         </div>
-                        <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{msg.content}</div>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="input-area" style={{ display: 'flex', gap: '10px' }}>
+            <div className="input-area" style={{ display: 'flex', gap: '15px', position: 'relative' }}>
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    placeholder="Type your message..."
+                    placeholder="Ask about Nightscout or Loop..."
                     disabled={isLoading}
                     style={{
                         flex: 1,
-                        padding: '12px',
-                        borderRadius: '8px',
-                        border: '1px solid #ddd',
+                        padding: '16px 24px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
                         fontSize: '16px',
-                        outline: 'none'
+                        outline: 'none',
+                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                        color: 'var(--text-color)',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        transition: 'all 0.3s ease'
                     }}
                 />
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
                     style={{
-                        padding: '12px 24px',
-                        borderRadius: '8px',
+                        padding: '16px 32px',
+                        borderRadius: '16px',
                         border: 'none',
-                        backgroundColor: isLoading ? '#ccc' : '#007bff',
+                        background: isLoading ? 'rgba(255, 255, 255, 0.1)' : 'linear-gradient(135deg, var(--primary-color), var(--accent-color))',
                         color: 'white',
                         fontSize: '16px',
+                        fontWeight: '600',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
-                        transition: 'background-color 0.2s'
+                        transition: 'all 0.3s ease',
+                        boxShadow: isLoading ? 'none' : '0 4px 12px rgba(129, 140, 248, 0.3)'
                     }}
                 >
-                    {isLoading ? 'Sending...' : 'Send'}
+                    {isLoading ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="spinner" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%' }}></span>
+                            Thinking...
+                        </span>
+                    ) : 'Send'}
                 </button>
             </div>
         </div>
