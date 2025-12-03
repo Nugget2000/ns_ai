@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '../styles/BloodDrop.css';
 
 interface Message {
     role: 'user' | 'emanuel';
@@ -102,7 +105,7 @@ const EmanuelPage: React.FC = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', height: '95vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', height: '95vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <h1 className="text-pop" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Chat with Emanuel</h1>
                 <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.1rem' }}>Your expert guide to Nightscout and Loop documentation.</p>
@@ -175,7 +178,29 @@ const EmanuelPage: React.FC = () => {
                             borderBottomLeftRadius: msg.role === 'emanuel' ? '4px' : '18px',
                             border: msg.role === 'emanuel' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
                         }}>
-                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{msg.content}</div>
+                            <div className="markdown-content" style={{ lineHeight: '1.6', overflowWrap: 'break-word' }}>
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        code: ({ node, ...props }) => {
+                                            const match = /language-(\w+)/.exec(props.className || '')
+                                            return match ? (
+                                                <div style={{ backgroundColor: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', overflowX: 'auto', margin: '10px 0' }}>
+                                                    <code {...props} className={props.className} />
+                                                </div>
+                                            ) : (
+                                                <code {...props} style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '2px 4px', borderRadius: '4px' }} />
+                                            )
+                                        }
+                                    }}
+                                >
+                                    {msg.content}
+                                </ReactMarkdown>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -221,7 +246,9 @@ const EmanuelPage: React.FC = () => {
                 >
                     {isLoading ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span className="spinner" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%' }}></span>
+                            <div className="blood-drop-wrapper" style={{ padding: 0, width: '20px', height: '20px' }}>
+                                <div className="blood-drop" style={{ width: '12px', height: '12px' }}></div>
+                            </div>
                             Thinking...
                         </span>
                     ) : 'Send'}
