@@ -47,7 +47,7 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
 
         # check if file exists
         if not os.path.exists('emanuel_prompt.txt'):
-            raise HTTPException(status_code=404, detail="File not found")
+            print("info: there is no emanuel_prompt.txt in this environment.")
 
         # delete all file search stores
         #print("Deleting all file search stores")
