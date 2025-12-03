@@ -89,7 +89,7 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
 
 
         print("generating response...")        
-        response = await client.aio.models.generate_content(
+        response = await client.aio.models.generate_content_stream(
             model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
@@ -104,16 +104,17 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
             )
         )
         
-        if response.text:
-            yield json.dumps({"type": "content", "text": response.text}) + "\n"
-        
-        # Usage metadata
-        if response.usage_metadata:
-             yield json.dumps({
-                "type": "usage", 
-                "input_tokens": response.usage_metadata.prompt_token_count,
-                "output_tokens": response.usage_metadata.candidates_token_count
-            }) + "\n"
+        async for chunk in response:
+            if chunk.text:
+                yield json.dumps({"type": "content", "text": chunk.text}) + "\n"
+            
+            # Usage metadata can come in chunks or at the end
+            if chunk.usage_metadata:
+                 yield json.dumps({
+                    "type": "usage", 
+                    "input_tokens": chunk.usage_metadata.prompt_token_count,
+                    "output_tokens": chunk.usage_metadata.candidates_token_count
+                }) + "\n"
 
         print("Done")
         
