@@ -50,3 +50,39 @@ async def increment_visitor_count() -> int:
         logging.error(f"Error incrementing visitor count: {e}")
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+
+def save_emanuel_prompt(prompt_text: str):
+    """
+    Saves the compiled Emanuel prompt to Firestore.
+    """
+    logging.info("Saving Emanuel prompt to Firestore")
+    try:
+        doc_ref = db.collection("ns_ai").document("emanuel_context")
+        doc_ref.set({"prompt": prompt_text})
+        logging.info("Successfully saved Emanuel prompt to Firestore")
+    except Exception as e:
+        logging.error(f"Error saving Emanuel prompt to Firestore: {e}")
+        raise e
+
+def get_emanuel_prompt() -> str:
+    """
+    Retrieves the Emanuel prompt from Firestore.
+    Returns the prompt text or a default message if not found.
+    """
+    logging.info("Fetching Emanuel prompt from Firestore")
+    try:
+        doc_ref = db.collection("ns_ai").document("emanuel_context")
+        snapshot = doc_ref.get()
+        
+        if snapshot.exists:
+            prompt = snapshot.get("prompt")
+            logging.info("Successfully fetched Emanuel prompt from Firestore")
+            return prompt
+        else:
+            logging.warning("Emanuel prompt not found in Firestore, using default.")
+            return "Your name is Emanuel and I will try to help. The answers are short and consise and always 100% correct, never lie or come up with answes."
+            
+    except Exception as e:
+        logging.error(f"Error fetching Emanuel prompt from Firestore: {e}")
+        # Return default on error to keep service running
+        return "Your name is Emanuel and I will try to help. The answers are short and consise and always 100% correct, never lie or come up with answes."

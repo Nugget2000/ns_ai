@@ -5,10 +5,17 @@ interface Message {
     content: string;
 }
 
+interface UsageMetadata {
+    input_tokens: number;
+    output_tokens: number;
+}
+
 const EmanuelPage: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [metadata, setMetadata] = useState<UsageMetadata | null>(null);
+    const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -26,6 +33,7 @@ const EmanuelPage: React.FC = () => {
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
+        setMetadata(null); // Reset metadata for new request
 
         try {
             const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -42,20 +50,48 @@ const EmanuelPage: React.FC = () => {
 
             setMessages(prev => [...prev, { role: 'emanuel', content: '' }]);
 
+            let buffer = '';
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
 
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    const lastMessage = newMessages[newMessages.length - 1];
-                    if (lastMessage.role === 'emanuel') {
-                        lastMessage.content += chunk;
+                // Process all complete lines
+                buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+
+                    try {
+                        const data = JSON.parse(line);
+
+                        if (data.type === 'content') {
+                            setMessages(prev => {
+                                const newMessages = [...prev];
+                                const lastMessage = newMessages[newMessages.length - 1];
+                                if (lastMessage.role === 'emanuel') {
+                                    lastMessage.content += data.text;
+                                }
+                                return newMessages;
+                            });
+                        } else if (data.type === 'prompt') {
+                            setSystemPrompt(data.text);
+                        } else if (data.type === 'usage') {
+                            setMetadata({
+                                input_tokens: data.input_tokens,
+                                output_tokens: data.output_tokens
+                            });
+                        } else if (data.type === 'error') {
+                            console.error('Backend error:', data.text);
+                            setMessages(prev => [...prev, { role: 'emanuel', content: `Error: ${data.text}` }]);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON chunk:', e, line);
                     }
-                    return newMessages;
-                });
+                }
             }
         } catch (error) {
             console.error('Error:', error);
@@ -66,10 +102,25 @@ const EmanuelPage: React.FC = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', height: '85vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', height: '95vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <h1 className="text-pop" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Chat with Emanuel</h1>
                 <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.1rem' }}>Your expert guide to Nightscout and Loop documentation.</p>
+
+                {metadata && (
+                    <div style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        display: 'inline-block',
+                        fontSize: '0.9rem',
+                        color: 'rgba(255, 255, 255, 0.9)'
+                    }}>
+                        <span style={{ marginRight: '15px' }}>Input Tokens: <strong>{metadata.input_tokens}</strong></span>
+                        <span>Output Tokens: <strong>{metadata.output_tokens}</strong></span>
+                    </div>
+                )}
             </div>
 
             <div className="chat-window" style={{
@@ -131,7 +182,7 @@ const EmanuelPage: React.FC = () => {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="input-area" style={{ display: 'flex', gap: '15px', position: 'relative' }}>
+            <div className="input-area" style={{ display: 'flex', gap: '15px', position: 'relative', marginBottom: '20px' }}>
                 <input
                     type="text"
                     value={input}
@@ -176,6 +227,25 @@ const EmanuelPage: React.FC = () => {
                     ) : 'Send'}
                 </button>
             </div>
+
+            {systemPrompt && (
+                <div style={{
+                    marginTop: 'auto',
+                    padding: '15px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                    <details>
+                        <summary style={{ cursor: 'pointer', fontWeight: 'bold', marginBottom: '5px' }}>System Prompt (Debug)</summary>
+                        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>{systemPrompt}</pre>
+                    </details>
+                </div>
+            )}
         </div>
     );
 };

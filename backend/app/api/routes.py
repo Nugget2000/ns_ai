@@ -29,4 +29,32 @@ class ChatRequest(BaseModel):
 
 @router.post("/emanuel")
 async def chat_emanuel(request: ChatRequest):
-    return StreamingResponse(generate_emanuel_response(request.message), media_type="text/plain")
+    return StreamingResponse(generate_emanuel_response(request.message), media_type="application/x-ndjson")
+
+@router.post("/scrape")
+async def run_scraper():
+    try:
+        # Initialize scraper with default paths (relative to backend/app/services/../../..)
+        # We need to be careful with paths. ScraperService defaults to "backend/cache".
+        # When running from main.py (uvicorn), the CWD is usually the root of the project or backend.
+        # Let's check where uvicorn is run from. Usually it's run from the root or backend dir.
+        # If we assume it's run from `backend` or root, we might need to adjust.
+        # However, ScraperService uses relative paths.
+        # Let's use absolute paths to be safe, or rely on the default if we are confident.
+        # The ScraperService defaults: cache_dir="backend/cache", prompt_file="backend/emanuel_prompt.txt"
+        # If we run uvicorn from `backend`, then `backend/cache` would be `backend/backend/cache` which is wrong.
+        # If we run from root, it's correct.
+        # Let's assume we run from root (as per `start.sh` or `docker.sh`).
+        
+        # To be safer, let's determine the paths based on __file__
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) # backend
+        cache_dir = os.path.join(base_dir, "cache")
+        prompt_file = os.path.join(base_dir, "emanuel_prompt.txt")
+        
+        from ..services.scraper import ScraperService
+        scraper = ScraperService(cache_dir=cache_dir, prompt_file=prompt_file)
+        summary = scraper.run()
+        return summary
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

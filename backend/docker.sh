@@ -39,6 +39,9 @@ docker build -t backend .
 # It maps container port 8000 to host port 8000.
 # We override the default command to verify the file exists before starting the app.
 # The :Z flag is used to relabel the file for SELinux compatibility.
+# The --rm flag removes the container when it exits.
+# The -it flag runs the container in interactive mode with a pseudo-TTY.
+
 docker run --rm -it \
   --name backend \
   -p 8000:8000 \

@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# ignore all files in /backend/cache directory
+/backend/cache
+
+
 # Distribution / packaging
 .Python
 build/
