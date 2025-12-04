@@ -167,12 +167,12 @@ resource "google_cloud_run_v2_service" "frontend" {
   ]
 }
 
-# IAM policy to allow unauthenticated access to backend (adjust as needed)
-resource "google_cloud_run_v2_service_iam_member" "backend_noauth" {
+# IAM policy to allow frontend service account access to backend
+resource "google_cloud_run_v2_service_iam_member" "backend_frontend_access" {
   location = google_cloud_run_v2_service.backend.location
   name     = google_cloud_run_v2_service.backend.name
   role     = "roles/run.invoker"
-  member   = "allUsers"
+  member   = "serviceAccount:${google_service_account.frontend_sa.email}"
 }
 
 # IAM policy to allow unauthenticated access to frontend (adjust as needed)
