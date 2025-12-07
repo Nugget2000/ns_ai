@@ -183,6 +183,14 @@ resource "google_cloud_run_v2_service_iam_member" "frontend_noauth" {
   member   = "allUsers"
 }
 
+# IAM policy to allow unauthenticated access to backend (required for client-side calls)
+resource "google_cloud_run_v2_service_iam_member" "backend_noauth" {
+  location = google_cloud_run_v2_service.backend.location
+  name     = google_cloud_run_v2_service.backend.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 # Service Account for GitHub Actions
 resource "google_service_account" "github_actions_sa" {
   account_id   = "github-actions-sa"
