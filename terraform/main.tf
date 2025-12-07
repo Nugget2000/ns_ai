@@ -1,6 +1,6 @@
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -167,7 +167,7 @@ resource "google_cloud_run_v2_service" "frontend" {
   ]
 }
 
-# IAM policy to allow frontend service account access to backend
+# IAM policy to allow frontend service account to access backend
 resource "google_cloud_run_v2_service_iam_member" "backend_frontend_access" {
   location = google_cloud_run_v2_service.backend.location
   name     = google_cloud_run_v2_service.backend.name

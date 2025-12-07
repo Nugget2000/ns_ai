@@ -18,8 +18,11 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ARG VITE_AUTH_PASSWORD
 ENV VITE_AUTH_PASSWORD=$VITE_AUTH_PASSWORD
 
-# Expose Vite port
+# Build the Vite app
+RUN npm run build
+
+# Expose port 8080 (Cloud Run default)
 EXPOSE 80
 
-# Start development server
-CMD ["npm", "run", "dev"]
+# Start the BFF server
+CMD ["node", "server.js"]
