@@ -44,8 +44,8 @@ const BackendStatus: React.FC = () => {
         checkBackend();
         trackPageLoad();
 
-        // Auto-refresh health only every 60 seconds
-        const interval = setInterval(checkBackend, 60000);
+        // Auto-refresh health every 5 minutes
+        const interval = setInterval(checkBackend, 300000);
 
         return () => clearInterval(interval);
     }, []);
