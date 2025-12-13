@@ -9,6 +9,16 @@ import logging
 # Setup logging
 setup_logging()
 
+import firebase_admin
+from firebase_admin import credentials
+
+# Initialize Firebase Admin
+try:
+    firebase_admin.get_app()
+except ValueError:
+    firebase_admin.initialize_app()
+
+
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.PROJECT_NAME,

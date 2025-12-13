@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { auth } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/BloodDrop.css';
@@ -40,9 +41,17 @@ const EmanuelPage: React.FC = () => {
 
         try {
             const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+            const token = await auth.currentUser?.getIdToken();
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${apiBaseUrl}/emanuel`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ message: userMessage.content }),
             });
 

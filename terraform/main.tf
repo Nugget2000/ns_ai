@@ -6,10 +6,19 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 5.0"
+    }
   }
 }
 
 provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
+provider "google-beta" {
   project = var.project_id
   region  = var.region
 }
@@ -35,6 +44,19 @@ resource "google_project_service" "cloud_build" {
   disable_on_destroy = false
 }
 
+# Firebase APIs
+resource "google_project_service" "firebase" {
+  provider           = google-beta
+  service            = "firebase.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "identitytoolkit" {
+  provider           = google-beta
+  service            = "identitytoolkit.googleapis.com"
+  disable_on_destroy = false
+}
+
 # Artifact Registry Repository for Docker images
 resource "google_artifact_registry_repository" "ns_ai_repo" {
   location      = var.region
@@ -55,6 +77,26 @@ resource "google_firestore_database" "database" {
   deletion_policy = "DELETE"
 
   depends_on = [google_project_service.firestore]
+}
+
+# Firebase Project
+resource "google_firebase_project" "default" {
+  provider = google-beta
+  project  = var.project_id
+
+  depends_on = [
+    google_project_service.firebase,
+    google_project_service.identitytoolkit
+  ]
+}
+
+# Firebase Web App
+resource "google_firebase_web_app" "frontend" {
+  provider     = google-beta
+  project      = var.project_id
+  display_name = "NS AI Frontend"
+
+  depends_on = [google_firebase_project.default]
 }
 
 # Service Account for Backend Cloud Run

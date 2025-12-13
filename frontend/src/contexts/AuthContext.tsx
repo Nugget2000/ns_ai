@@ -1,43 +1,56 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from '../lib/firebase';
 
 interface AuthContextType {
+    user: User | null;
     isAuthenticated: boolean;
-    login: (password: string) => boolean;
-    logout: () => void;
+    login: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STATIC_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD;
-const AUTH_STORAGE_KEY = 'ns_ai_authenticated';
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-        // Initialize from localStorage
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        return stored === 'true';
-    });
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Persist authentication state to localStorage
-        localStorage.setItem(AUTH_STORAGE_KEY, String(isAuthenticated));
-    }, [isAuthenticated]);
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setLoading(false);
+        });
 
-    const login = (password: string): boolean => {
-        if (password === STATIC_PASSWORD) {
-            setIsAuthenticated(true);
-            return true;
+        return () => unsubscribe();
+    }, []);
+
+    const login = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+            console.error("Login failed", error);
+            throw error;
         }
-        return false;
     };
 
-    const logout = () => {
-        setIsAuthenticated(false);
+    const logout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
+    };
+
+    const value = {
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-            {children}
+        <AuthContext.Provider value={value}>
+            {!loading && children}
         </AuthContext.Provider>
     );
 };

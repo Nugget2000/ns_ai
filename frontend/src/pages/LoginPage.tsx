@@ -4,28 +4,23 @@ import { useAuth } from '../contexts/AuthContext';
 import DiabetesAIIcon from '../components/DiabetesAIIcon';
 
 const LoginPage: React.FC = () => {
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const handleLogin = async () => {
         setError('');
         setIsLoading(true);
-
-        // Simulate short loading delay for better UX
-        setTimeout(() => {
-            const success = login(password);
-            if (success) {
-                navigate('/');
-            } else {
-                setError('Incorrect password. Please try again.');
-                setPassword('');
-            }
+        try {
+            await login();
+            navigate('/');
+        } catch (err) {
+            setError('Failed to sign in. Please try again.');
+            console.error(err);
+        } finally {
             setIsLoading(false);
-        }, 300);
+        }
     };
 
     return (
@@ -41,27 +36,11 @@ const LoginPage: React.FC = () => {
                         fontSize: '1rem',
                         marginBottom: '2rem'
                     }}>
-                        Enter your password to continue
+                        Sign in with Google to continue
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="login-form">
-                    <div className="form-group">
-                        <label htmlFor="password" className="form-label">
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="form-input"
-                            placeholder="Enter your password"
-                            disabled={isLoading}
-                            autoFocus
-                        />
-                    </div>
-
+                <div className="login-form">
                     {error && (
                         <div className="error-message">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -74,23 +53,13 @@ const LoginPage: React.FC = () => {
                     )}
 
                     <button
-                        type="submit"
+                        onClick={handleLogin}
                         className="login-button"
-                        disabled={isLoading || !password}
+                        disabled={isLoading}
                     >
-                        {isLoading ? (
-                            <>
-                                <svg className="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <circle cx="12" cy="12" r="10" opacity="0.25" />
-                                    <path d="M12 2a10 10 0 0 1 10 10" opacity="0.75" />
-                                </svg>
-                                Signing in...
-                            </>
-                        ) : (
-                            'Sign In'
-                        )}
+                        {isLoading ? 'Signing in...' : 'Sign in with Google'}
                     </button>
-                </form>
+                </div>
 
                 <div className="login-footer">
                     <p style={{
