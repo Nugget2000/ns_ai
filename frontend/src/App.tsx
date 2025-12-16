@@ -9,6 +9,7 @@ import FeedbackPage from './pages/FeedbackPage';
 import AboutPage from './pages/AboutPage';
 import TributePage from './pages/TributePage';
 import LoginPage from './pages/LoginPage';
+import AdminPage from './pages/AdminPage';
 import Navbar from './components/Navbar';
 
 const AppContent: React.FC = () => {
@@ -18,13 +19,15 @@ const AppContent: React.FC = () => {
     <>
       {isAuthenticated && <Navbar />}
       <Routes>
+
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
-        <Route path="/emanuel" element={<ProtectedRoute><EmanuelPage /></ProtectedRoute>} />
-        <Route path="/insights" element={<ProtectedRoute><InsightsPage /></ProtectedRoute>} />
-        <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
-        <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
-        <Route path="/tribute" element={<ProtectedRoute><TributePage /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute requiredRole="user"><LandingPage /></ProtectedRoute>} />
+        <Route path="/emanuel" element={<ProtectedRoute requiredRole="user"><EmanuelPage /></ProtectedRoute>} />
+        <Route path="/insights" element={<ProtectedRoute requiredRole="user"><InsightsPage /></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute requiredRole="user"><FeedbackPage /></ProtectedRoute>} />
+        <Route path="/about" element={<ProtectedRoute requiredRole="user"><AboutPage /></ProtectedRoute>} />
+        <Route path="/tribute" element={<ProtectedRoute requiredRole="user"><TributePage /></ProtectedRoute>} />
       </Routes>
     </>
   );

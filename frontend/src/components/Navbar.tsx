@@ -7,11 +7,11 @@ import emanuel from '../assets/emanuel.png';
 import hanna from '../assets/hanna.png';
 import cora from '../assets/cora.png';
 import benny from '../assets/benny.png';
-import { Menu, X, Home, MessageSquare, Info, Heart, LogOut } from 'lucide-react';
+import { Menu, X, Home, MessageSquare, Info, Heart, LogOut, Shield } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
-    const { logout } = useAuth();
+    const { logout, userProfile, firebaseUser } = useAuth();
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -76,9 +76,15 @@ const Navbar: React.FC = () => {
                     <NavIcon><Heart size={14} /></NavIcon>
                     Tribute
                 </Link>
+                {userProfile?.role === 'admin' && (
+                    <Link to="/admin" className="nav-link">
+                        <NavIcon><Shield size={14} /></NavIcon>
+                        Admin
+                    </Link>
+                )}
                 <button onClick={handleLogout} className="logout-button">
                     <LogOut size={14} />
-                    Logout
+                    {firebaseUser?.displayName?.split(' ')[0] || 'User'}
                 </button>
             </div>
 
@@ -114,7 +120,7 @@ const Navbar: React.FC = () => {
                 </Link>
                 <button onClick={handleLogout} className="logout-button" style={{ width: '100%', justifyContent: 'center' }}>
                     <LogOut size={14} />
-                    Logout
+                    {firebaseUser?.displayName?.split(' ')[0] || 'User'}
                 </button>
             </div>
         </nav>

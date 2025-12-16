@@ -5,7 +5,7 @@ from ..models.schemas import CountResponse, HealthResponse, VersionResponse
 from ..services.firebase import increment_visitor_count
 from ..services.gemini import generate_emanuel_response
 from ..core.config import settings
-from ..core.auth import verify_token
+from ..core.auth import verify_token, get_active_user
 from fastapi import Depends
 
 
@@ -30,12 +30,13 @@ async def track_page_load():
 class ChatRequest(BaseModel):
     message: str
 
+
 @router.post("/emanuel")
-async def chat_emanuel(request: ChatRequest, token: dict = Depends(verify_token)):
+async def chat_emanuel(request: ChatRequest, user: dict = Depends(get_active_user)):
     return StreamingResponse(generate_emanuel_response(request.message), media_type="application/x-ndjson")
 
 @router.post("/scrape")
-async def run_scraper(token: dict = Depends(verify_token)):
+async def run_scraper(user: dict = Depends(get_active_user)):
     try:
         # Initialize scraper with default paths (relative to backend/app/services/../../..)
         # We need to be careful with paths. ScraperService defaults to "backend/cache".

@@ -4,6 +4,7 @@ import base64
 import logging
 import traceback
 import firebase_admin
+from datetime import datetime
 from fastapi import HTTPException
 from firebase_admin import credentials, firestore
 
@@ -86,3 +87,23 @@ def get_emanuel_prompt() -> str:
         logging.error(f"Error fetching Emanuel prompt from Firestore: {e}")
         # Return default on error to keep service running
         return "Your name is Emanuel and I will try to help. The answers are short and consise and always 100% correct, never lie or come up with answes."
+
+def log_login_event(user_data: dict):
+    """
+    Logs the user login event to the 'ns_ai_logging' collection.
+    """
+    try:
+        user_id = user_data.get("uid")
+        email = user_data.get("email")
+        
+        # Create a document in ns_ai_logging
+        db.collection("ns_ai_logging").add({
+            "uid": user_id,
+            "email": email,
+            "event_type": "login",
+            "timestamp": firestore.SERVER_TIMESTAMP
+        })
+        logging.info(f"Logged login event for user {user_id}")
+    except Exception as e:
+        # Log error but don't fail the request
+        logging.error(f"Failed to log login event: {e}")

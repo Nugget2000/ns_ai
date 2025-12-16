@@ -1,9 +1,14 @@
+
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
+
 import { auth, googleProvider } from '../lib/firebase';
+import { getMe, type User as AppUser } from '../api';
 
 interface AuthContextType {
-    user: User | null;
+    firebaseUser: FirebaseUser | null;
+    userProfile: AppUser | null;
     isAuthenticated: boolean;
     login: () => Promise<void>;
     logout: () => Promise<void>;
@@ -12,12 +17,23 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+    const [userProfile, setUserProfile] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            setFirebaseUser(currentUser);
+            if (currentUser) {
+                try {
+                    const profile = await getMe();
+                    setUserProfile(profile);
+                } catch (error) {
+                    console.error("Failed to fetch user profile", error);
+                }
+            } else {
+                setUserProfile(null);
+            }
             setLoading(false);
         });
 
@@ -36,14 +52,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = async () => {
         try {
             await signOut(auth);
+            setUserProfile(null);
         } catch (error) {
             console.error("Logout failed", error);
         }
     };
 
     const value = {
-        user,
-        isAuthenticated: !!user,
+        firebaseUser,
+        userProfile,
+        isAuthenticated: !!firebaseUser,
         login,
         logout
     };

@@ -2,15 +2,27 @@ import { auth } from './lib/firebase';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-const getAuthHeaders = async () => {
+const getAuthHeaders = async (): Promise<HeadersInit> => {
     const token = await auth.currentUser?.getIdToken();
-    return token ? {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    } : {
+    if (token) {
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+    return {
         'Content-Type': 'application/json'
     };
 };
+
+
+export interface User {
+    uid: string;
+    email: string;
+    role: 'pending' | 'user' | 'admin';
+    created_at?: string;
+    last_login?: string;
+}
 
 export interface HealthResponse {
     status: string;
@@ -61,4 +73,37 @@ export const getPageLoad = async (): Promise<PageLoadResponse> => {
     } catch (error) {
         throw new Error('Unable to fetch page load count');
     }
+};
+
+export const getMe = async (): Promise<User> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/users/me`, { headers });
+    if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+    }
+    return await response.json();
+};
+
+export const getUsers = async (): Promise<User[]> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/users/`, { headers });
+    if (!response.ok) {
+        throw new Error('Failed to fetch users');
+    }
+    return await response.json();
+};
+
+export const updateUserRole = async (uid: string, role: string): Promise<User> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/users/${uid}/role`, {
+        method: 'PUT',
+        headers: {
+            ...headers as Record<string, string>,
+        },
+        body: JSON.stringify({ role })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to update user role');
+    }
+    return await response.json();
 };

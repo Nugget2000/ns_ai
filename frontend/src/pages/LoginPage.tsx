@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DiabetesAIIcon from '../components/DiabetesAIIcon';
@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
                         fontSize: '0.875rem',
                         textAlign: 'center'
                     }}>
-                        Secure access to your diabetes AI assistant
+                        Secure access to your diabetes AI assistant2
                     </p>
                 </div>
             </div>

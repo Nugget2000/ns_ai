@@ -36,7 +36,12 @@ app.add_middleware(
 )
 
 # Include routers
+
+# Include routers
 app.include_router(router)
+from .api.users import router as users_router
+app.include_router(users_router, prefix="/users", tags=["users"])
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
