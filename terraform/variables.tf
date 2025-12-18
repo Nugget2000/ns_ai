@@ -30,7 +30,7 @@ variable "backend_min_instances" {
 variable "backend_max_instances" {
   description = "Maximum number of backend instances"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "frontend_min_instances" {
@@ -42,7 +42,7 @@ variable "frontend_min_instances" {
 variable "frontend_max_instances" {
   description = "Maximum number of frontend instances"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "domain_name" {
