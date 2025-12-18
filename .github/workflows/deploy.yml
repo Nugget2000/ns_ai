@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_ID: ns-ai-project
-  REGION: europe-north2
+  REGION: europe-north1
   REPO_NAME: ns-ai-repo
 
 jobs:

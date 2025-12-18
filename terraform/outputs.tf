@@ -21,3 +21,7 @@ output "firebase_config" {
     appId             = google_firebase_web_app.frontend.app_id
   }
 }
+
+output "domain_mapping_records" {
+  value = google_cloud_run_domain_mapping.frontend.status[0].resource_records
+}
