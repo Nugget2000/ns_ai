@@ -39,7 +39,7 @@ ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 # Build the Vite app
 RUN npm run build
 
-# Expose port 8080 (Cloud Run default)
+# Expose port 80 (Cloud Run default)
 EXPOSE 80
 
 # Start the BFF server
