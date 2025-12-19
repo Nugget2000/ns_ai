@@ -85,7 +85,6 @@ jobs:
           env_vars: |
             PROJECT_ID=${{ env.PROJECT_ID }}
             ENVIRONMENT=production
-            GEMINI_API_KEY=${{ steps.secrets_manager.outputs.GEMINI_API_KEY }}
 
       - name: Deploy Frontend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
