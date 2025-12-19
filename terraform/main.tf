@@ -387,7 +387,7 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
     "attribute.repository" = "assertion.repository"
     "attribute.actor"      = "assertion.actor"
   }
-  attribute_condition = "assertion.repository == 'nugget2000/ns_ai'"
+  attribute_condition = "assertion.repository == 'Nugget2000/ns_ai'"
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -398,7 +398,7 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
 resource "google_service_account_iam_member" "github_actions_sa_impersonation" {
   service_account_id = google_service_account.github_actions_sa.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/nugget2000/ns_ai"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/Nugget2000/ns_ai"
 }
 
 # Domain Mapping for Frontend
