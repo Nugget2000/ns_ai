@@ -77,7 +77,6 @@ jobs:
           env_vars: |
             PROJECT_ID=${{ env.PROJECT_ID }}
             ENVIRONMENT=production
-            GEMINI_API_KEY=${{ env.GEMINI_API_KEY }}
             GOOGLE_CREDENTIALS_BASE64=${{ steps.secrets.outputs.GCP_SA_KEY_BASE64 }}
 
       - name: Deploy Frontend to Cloud Run

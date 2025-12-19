@@ -44,6 +44,11 @@ resource "google_project_service" "cloud_build" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "secret_manager" {
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
 # Firebase APIs
 resource "google_project_service" "firebase" {
   provider           = google-beta
@@ -158,13 +163,43 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "ENVIRONMENT"
         value = "production"
       }
+
+      env {
+        name = "GEMINI_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.gemini_api_key.secret_id
+            version = "latest"
+          }
+        }
+      }
     }
   }
 
   depends_on = [
     google_project_service.run,
+    google_project_service.secret_manager,
     google_firestore_database.database
   ]
+}
+
+# Secret Manager Secret for Gemini API Key
+resource "google_secret_manager_secret" "gemini_api_key" {
+  secret_id = "gemini-api-key"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+# Grant Secret Manager Secret Accessor role to backend service account
+resource "google_secret_manager_secret_iam_member" "backend_secret_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.gemini_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.backend_sa.email}"
 }
 
 # Cloud Run Service - Frontend
