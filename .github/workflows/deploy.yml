@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: ns-ai-project
   REGION: europe-north1
-  REPO_NAME: ns-ai-repo
+  REPO_NAME: ns_ai
 
 jobs:
   build-and-deploy:
