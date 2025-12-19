@@ -6,6 +6,10 @@ output "frontend_url" {
   value = google_cloud_run_v2_service.frontend.uri
 }
 
+output "workload_identity_provider" {
+  value = google_iam_workload_identity_pool_provider.github_provider.name
+}
+
 data "google_firebase_web_app_config" "frontend" {
   provider   = google-beta
   web_app_id = google_firebase_web_app.frontend.app_id

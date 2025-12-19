@@ -13,6 +13,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
     steps:
       - name: Checkout code
@@ -22,10 +25,26 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          workload_identity_provider: 'projects/949800367114/locations/global/workloadIdentityPools/github-actions-pool-unique/providers/github-actions-provider'
+          service_account: 'github-actions-sa@ns-ai-project.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get Secrets from Secret Manager
+        id: secrets_manager
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+            VITE_API_BASE_URL:projects/ns-ai-project/secrets/api-base-url
+            VITE_AUTH_PASSWORD:projects/ns-ai-project/secrets/vite-auth-password
+            VITE_FIREBASE_API_KEY:projects/ns-ai-project/secrets/vite-firebase-api-key
+            VITE_FIREBASE_AUTH_DOMAIN:projects/ns-ai-project/secrets/vite-firebase-auth-domain
+            VITE_FIREBASE_PROJECT_ID:projects/ns-ai-project/secrets/vite-firebase-project-id
+            VITE_FIREBASE_STORAGE_BUCKET:projects/ns-ai-project/secrets/vite-firebase-storage-bucket
+            VITE_FIREBASE_MESSAGING_SENDER_ID:projects/ns-ai-project/secrets/vite-firebase-messaging-sender-id
+            VITE_FIREBASE_APP_ID:projects/ns-ai-project/secrets/vite-firebase-app-id
+            GEMINI_API_KEY:projects/ns-ai-project/secrets/gemini-api-key
 
       - name: Configure Docker Auth
         run: |
@@ -43,33 +62,22 @@ jobs:
         run: |
           cd frontend
           docker build \
-            --build-arg VITE_API_BASE_URL=${{ secrets.API_BASE_URL }} \
-            --build-arg VITE_AUTH_PASSWORD=${{ secrets.VITE_AUTH_PASSWORD }} \
-            --build-arg VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }} \
-            --build-arg VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }} \
-            --build-arg VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }} \
-            --build-arg VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }} \
-            --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }} \
-            --build-arg VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }} \
+            --build-arg VITE_API_BASE_URL=${{ steps.secrets_manager.outputs.VITE_API_BASE_URL }} \
+            --build-arg VITE_AUTH_PASSWORD=${{ steps.secrets_manager.outputs.VITE_AUTH_PASSWORD }} \
+            --build-arg VITE_FIREBASE_API_KEY=${{ steps.secrets_manager.outputs.VITE_FIREBASE_API_KEY }} \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN=${{ steps.secrets_manager.outputs.VITE_FIREBASE_AUTH_DOMAIN }} \
+            --build-arg VITE_FIREBASE_PROJECT_ID=${{ steps.secrets_manager.outputs.VITE_FIREBASE_PROJECT_ID }} \
+            --build-arg VITE_FIREBASE_STORAGE_BUCKET=${{ steps.secrets_manager.outputs.VITE_FIREBASE_STORAGE_BUCKET }} \
+            --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=${{ steps.secrets_manager.outputs.VITE_FIREBASE_MESSAGING_SENDER_ID }} \
+            --build-arg VITE_FIREBASE_APP_ID=${{ steps.secrets_manager.outputs.VITE_FIREBASE_APP_ID }} \
             -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:${{ github.sha }} .
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:${{ github.sha }}
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:latest
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend:latest
 
-      - name: Prepare Secrets
-        id: secrets
-        shell: bash
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          echo "GCP_SA_KEY_BASE64=$(echo -n "$GCP_SA_KEY" | base64 -w 0)" >> $GITHUB_OUTPUT
-
       - name: Deploy Backend to Cloud Run
         id: deploy-backend
         uses: google-github-actions/deploy-cloudrun@v2
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         with:
           service: ns-ai-backend
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/backend:${{ github.sha }}
@@ -77,7 +85,7 @@ jobs:
           env_vars: |
             PROJECT_ID=${{ env.PROJECT_ID }}
             ENVIRONMENT=production
-            GOOGLE_CREDENTIALS_BASE64=${{ steps.secrets.outputs.GCP_SA_KEY_BASE64 }}
+            GEMINI_API_KEY=${{ steps.secrets_manager.outputs.GEMINI_API_KEY }}
 
       - name: Deploy Frontend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
