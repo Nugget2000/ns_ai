@@ -12,6 +12,8 @@ const port = process.env.PORT || 8080;
 
 // Configuration
 const BACKEND_URL = process.env.BACKEND_URL;
+const FIREBASE_PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID;
+
 if (!BACKEND_URL) {
     console.error('Error: BACKEND_URL environment variable is not set.');
     process.exit(1);
@@ -19,6 +21,11 @@ if (!BACKEND_URL) {
 
 console.log(`Starting BFF server...`);
 console.log(`Backend URL: ${BACKEND_URL}`);
+if (FIREBASE_PROJECT_ID) {
+    console.log(`Firebase Project ID: ${FIREBASE_PROJECT_ID}`);
+} else {
+    console.warn('Warning: VITE_FIREBASE_PROJECT_ID environment variable is not set. Auth proxy will not be configured.');
+}
 
 // Initialize Google Auth Client
 const auth = new GoogleAuth();
@@ -58,6 +65,16 @@ const apiProxy = createProxyMiddleware({
         res.status(500).send('Proxy error');
     }
 });
+
+// Proxy middleware for Firebase Auth
+if (FIREBASE_PROJECT_ID) {
+    const authProxy = createProxyMiddleware({
+        target: `https://${FIREBASE_PROJECT_ID}.firebaseapp.com`,
+        changeOrigin: true,
+        secure: true,
+    });
+    app.use('/__/auth', authProxy);
+}
 
 // Use proxy for /api routes
 app.use('/api', apiProxy);
