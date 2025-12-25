@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 80,
-    allowedHosts: ['ns-ai-frontend-949800367114.europe-north1.run.app'],
+    allowedHosts: ['nsai.morningmonkey.net'],
   },
 })
