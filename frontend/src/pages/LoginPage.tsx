@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
                         fontSize: '0.875rem',
                         textAlign: 'center'
                     }}>
-                        Secure access to your diabetes AI assistant2
+                        Secure access to your diabetes AI assistant
                     </p>
                 </div>
             </div>
