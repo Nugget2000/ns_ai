@@ -29,7 +29,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost", "http://127.0.0.1:5173", "http://172.17.0.3:80", "https://ns-ai-frontend-949800367114.europe-north1.run.app"],  # Frontend URLs
+    allow_origins=["http://localhost:5173", "http://localhost", "http://127.0.0.1:5173", "https://nsai.morningmonkey.net", "nsai.morningmonkey.net"]
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
