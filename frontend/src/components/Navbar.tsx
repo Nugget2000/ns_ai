@@ -10,6 +10,12 @@ import benny from '../assets/benny.png';
 import { Menu, X, Home, MessageSquare, Info, Heart, LogOut, Shield } from 'lucide-react';
 import './Navbar.css';
 
+const NavIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="nav-icon">
+        {children}
+    </div>
+);
+
 const Navbar: React.FC = () => {
     const { logout, userProfile, firebaseUser } = useAuth();
     const navigate = useNavigate();
@@ -29,12 +35,6 @@ const Navbar: React.FC = () => {
         setIsMobileMenuOpen(false);
     };
 
-    const NavIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-        <div className="nav-icon">
-            {children}
-        </div>
-    );
-
     return (
         <nav className="navbar">
             <div className="navbar-brand">
@@ -43,7 +43,12 @@ const Navbar: React.FC = () => {
                 <BackendStatus />
             </div>
 
-            <button className="mobile-menu-button" onClick={toggleMobileMenu}>
+            <button
+                className="mobile-menu-button"
+                onClick={toggleMobileMenu}
+                aria-label="Toggle navigation menu"
+                aria-expanded={isMobileMenuOpen}
+            >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
