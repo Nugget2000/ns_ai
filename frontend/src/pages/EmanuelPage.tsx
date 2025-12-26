@@ -155,6 +155,9 @@ const EmanuelPage: React.FC = () => {
                     <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)', marginTop: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
                         <img src={emanuelImage} alt="Emanuel" style={{ width: '100px', height: '100px', borderRadius: '50%', opacity: 0.6, filter: 'grayscale(50%)' }} />
                         <p style={{ fontSize: '1.2rem' }}>Hello! I'm Emanuel. How can I help you today?</p>
+                        You can ask questions like <br />
+                        Is it safe to update to IOS 26.2?
+                        <br />Why is my loop app "expired" and how can I fix it?
                     </div>
                 )}
 

@@ -105,11 +105,11 @@ const LandingPage: React.FC = () => {
                             transform: 'scale(1.02)',
                             boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)'
                         }}>
-                            <img src={emanuel} alt="Emanuel Reading" className="persona-image" style={{
+                            <img src={emanuel} alt="Emanuel" className="persona-image" style={{
                                 border: '3px solid rgba(99, 102, 241, 0.5)'
                             }} />
                             <h3 style={{ fontSize: '1.8rem', marginBottom: '0.5rem', color: 'var(--secondary-color)' }}>
-                                Emanuel Reading
+                                Emanuel
                             </h3>
                             <p style={{ marginBottom: '1.5rem', color: 'rgba(248, 250, 252, 0.9)', fontSize: '1.05rem' }}>
                                 Expert on Nightscout and Loop documentation. Get immediate answers to your questions.
