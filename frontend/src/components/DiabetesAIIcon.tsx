@@ -43,6 +43,8 @@ const DiabetesAIIcon: React.FC<DiabetesAIIconProps> = ({ size = 120, interactive
     return (
         <div
             ref={iconRef}
+            role="img"
+            aria-label="Diabetes AI Icon"
             style={{
                 width: `${size}px`,
                 height: `${size}px`,
