@@ -57,8 +57,9 @@ const Navbar: React.FC = () => {
 
     return (
         <nav className="navbar">
+            <a href="#main-content" className="skip-link">Skip to main content</a>
             <div className="navbar-container">
-                <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
+                <Link to="/" className="navbar-brand" onClick={closeMobileMenu} aria-label="NS AI Home">
                     <DiabetesAIIcon size={36} interactive={true} />
                     <span className="navbar-brand-text">NS AI</span>
                 </Link>
@@ -77,6 +78,7 @@ const Navbar: React.FC = () => {
                             key={link.to}
                             to={link.to}
                             className={`nav-link ${isActive(link.to) ? 'active' : ''}`}
+                            aria-current={isActive(link.to) ? 'page' : undefined}
                         >
                             {link.icon && <NavIcon>{link.icon}</NavIcon>}
                             {link.image === 'group' && (
@@ -92,7 +94,12 @@ const Navbar: React.FC = () => {
                             <span className="nav-link-text">{link.label}</span>
                         </Link>
                     ))}
-                    <button onClick={handleLogout} className="logout-button">
+                    <button
+                        onClick={handleLogout}
+                        className="logout-button"
+                        aria-label="Sign out"
+                        title="Sign out"
+                    >
                         <LogOut size={18} />
                         <span className="logout-text">{firebaseUser?.displayName?.split(' ')[0] || 'User'}</span>
                     </button>
@@ -108,6 +115,7 @@ const Navbar: React.FC = () => {
                             to={link.to}
                             className={`nav-link ${isActive(link.to) ? 'active' : ''}`}
                             onClick={closeMobileMenu}
+                            aria-current={isActive(link.to) ? 'page' : undefined}
                         >
                             {link.icon && <NavIcon>{link.icon}</NavIcon>}
                             {link.image === 'group' && (
@@ -126,6 +134,8 @@ const Navbar: React.FC = () => {
                     <button
                         onClick={handleLogout}
                         className="logout-button mobile-logout"
+                        aria-label="Sign out"
+                        title="Sign out"
                     >
                         <LogOut size={18} />
                         <span className="logout-text">{firebaseUser?.displayName?.split(' ')[0] || 'User'}</span>

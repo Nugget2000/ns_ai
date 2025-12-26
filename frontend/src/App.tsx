@@ -20,7 +20,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="app-wrapper">
       {isAuthenticated && <Navbar />}
-      <main className="app-main">
+      <main id="main-content" className="app-main">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
