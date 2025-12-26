@@ -152,7 +152,6 @@ class ScraperService:
                 
                 # Be polite
                 time.sleep(0.1)
-                break
                 
             except Exception as e:
                 logger.error(f"Failed to scrape {current_url}: {e}")
