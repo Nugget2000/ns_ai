@@ -27,6 +27,9 @@ if (FIREBASE_PROJECT_ID) {
     console.warn('Warning: VITE_FIREBASE_PROJECT_ID environment variable is not set. Auth proxy will not be configured.');
 }
 
+const FIREBASE_AUTH_DOMAIN = process.env.VITE_FIREBASE_AUTH_DOMAIN || 'ns-ai-project.firebaseapp.com';
+console.log(`Firebase Auth Domain: ${FIREBASE_AUTH_DOMAIN}`);
+
 // Initialize Google Auth Client
 const auth = new GoogleAuth();
 
@@ -78,6 +81,21 @@ if (FIREBASE_PROJECT_ID) {
 
 // Use proxy for /api routes
 app.use('/api', apiProxy);
+
+// Proxy for Firebase Auth routes (needed for custom domains)
+const authProxy = createProxyMiddleware({
+    target: `https://${FIREBASE_AUTH_DOMAIN}`,
+    changeOrigin: true,
+    onProxyReq: (proxyReq, req, res) => {
+        console.log(`Proxying Auth request: ${req.method} ${req.path} -> https://${FIREBASE_AUTH_DOMAIN}`);
+    },
+    onError: (err, req, res) => {
+        console.error('Auth Proxy error:', err);
+        res.status(500).send('Auth Proxy error');
+    }
+});
+
+app.use('/__/auth', authProxy);
 
 // Serve static files from the 'dist' directory (Vite build output)
 app.use(express.static(path.join(__dirname, 'dist')));

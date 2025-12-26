@@ -38,5 +38,5 @@ RUN npm run build
 EXPOSE 80
 
 # Start the BFF server
-#CMD ["node", "server.js"]
-CMD ["npm", "run", "dev"]
+CMD ["node", "server.js"]
+#CMD ["npm", "run", "dev"]
