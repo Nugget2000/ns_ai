@@ -26,6 +26,48 @@ def get_emanuel_prompt():
                  
               If the answer is not in the context, state that you don't know based on the available information."""
 
+def get_file_store_info():
+    """
+    Gets information about the emanuel_scrape_store file search store.
+    Returns dict with size_mb, upload_date, and display_name.
+    """
+    try:
+        file_search_stores = client.file_search_stores.list()
+        store = None
+        for file_search_store in file_search_stores:
+            if file_search_store.display_name == 'emanuel_scrape_store':
+                store = file_search_store
+                break
+        
+        if not store:
+            return {
+                "size_mb": 0.0,
+                "upload_date": None,
+                "display_name": None
+            }
+        
+        # Convert size_bytes to MB
+        size_mb = store.size_bytes / (1024 * 1024) if store.size_bytes else 0.0
+        
+        # Use update_time as upload date (or create_time if update_time is not available)
+        upload_date = store.update_time if hasattr(store, 'update_time') and store.update_time else (
+            store.create_time if hasattr(store, 'create_time') and store.create_time else None
+        )
+        
+        return {
+            "size_mb": round(size_mb, 2),
+            "upload_date": upload_date,
+            "display_name": store.display_name
+        }
+    except Exception as e:
+        print(f"Error getting file store info: {e}")
+        print(traceback.format_exc())
+        return {
+            "size_mb": 0.0,
+            "upload_date": None,
+            "display_name": None
+        }
+
 
 
 # generate a response from Emanuel (Gemini) using search store
@@ -67,7 +109,13 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
 
         # upload file if file doesnt exists in emanuel_search_store
         print("Checking for file in emanuel_scrape_store")
-        if [file_search_store for file_search_store in file_search_stores if file_search_store.display_name == 'emanuel_scrape_store']:
+        file_search_store = None
+        for store in file_search_stores:
+            if store.display_name == 'emanuel_scrape_store':
+                file_search_store = store
+                break
+        
+        if file_search_store:
             print(f"File found in emanuel_scrape_store. name={file_search_store.name} size_bytes={file_search_store.size_bytes} display_name={file_search_store.display_name}. created={file_search_store.create_time} updated={file_search_store.update_time}")
         else:
             print("No file store found, creating...")

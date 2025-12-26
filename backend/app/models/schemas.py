@@ -32,3 +32,8 @@ class HealthResponse(BaseModel):
 
 class VersionResponse(BaseModel):
     version: str
+
+class FileStoreInfoResponse(BaseModel):
+    size_mb: float
+    upload_date: Optional[datetime] = None
+    display_name: Optional[str] = None

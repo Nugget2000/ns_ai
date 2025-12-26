@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from ..models.schemas import CountResponse, HealthResponse, VersionResponse
+from ..models.schemas import CountResponse, HealthResponse, VersionResponse, FileStoreInfoResponse
 from ..services.firebase import increment_visitor_count
-from ..services.gemini import generate_emanuel_response
+from ..services.gemini import generate_emanuel_response, get_file_store_info
 from ..core.config import settings
 from ..core.auth import verify_token, get_active_user
 from fastapi import Depends
@@ -34,6 +34,15 @@ class ChatRequest(BaseModel):
 @router.post("/emanuel")
 async def chat_emanuel(request: ChatRequest, user: dict = Depends(get_active_user)):
     return StreamingResponse(generate_emanuel_response(request.message), media_type="application/x-ndjson")
+
+@router.get("/emanuel/file-store-info", response_model=FileStoreInfoResponse)
+async def get_file_store_info_endpoint(user: dict = Depends(get_active_user)):
+    """Get information about the file search store."""
+    try:
+        info = get_file_store_info()
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/scrape")
 async def run_scraper(user: dict = Depends(get_active_user)):

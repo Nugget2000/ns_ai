@@ -36,6 +36,12 @@ export interface PageLoadResponse {
     count: number;
 }
 
+export interface FileStoreInfoResponse {
+    size_mb: number;
+    upload_date: string | null;
+    display_name: string | null;
+}
+
 export const getHealth = async (): Promise<HealthResponse> => {
     try {
         const headers = await getAuthHeaders();
@@ -106,4 +112,17 @@ export const updateUserRole = async (uid: string, role: string): Promise<User> =
         throw new Error('Failed to update user role');
     }
     return await response.json();
+};
+
+export const getFileStoreInfo = async (): Promise<FileStoreInfoResponse> => {
+    try {
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_BASE_URL}/emanuel/file-store-info`, { headers });
+        if (!response.ok) {
+            throw new Error('Failed to fetch file store info');
+        }
+        return await response.json();
+    } catch (error) {
+        throw new Error('Unable to fetch file store info');
+    }
 };

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getFileStoreInfo, FileStoreInfoResponse } from '../api';
 import '../styles/BloodDrop.css';
 
 interface Message {
@@ -20,6 +21,7 @@ const EmanuelPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [metadata, setMetadata] = useState<UsageMetadata | null>(null);
     const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
+    const [fileStoreInfo, setFileStoreInfo] = useState<FileStoreInfoResponse | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -29,6 +31,19 @@ const EmanuelPage: React.FC = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        // Fetch file store info on component mount
+        const fetchFileStoreInfo = async () => {
+            try {
+                const info = await getFileStoreInfo();
+                setFileStoreInfo(info);
+            } catch (error) {
+                console.error('Failed to fetch file store info:', error);
+            }
+        };
+        fetchFileStoreInfo();
+    }, []);
 
     const sendMessage = async () => {
         if (!input.trim()) return;
@@ -133,6 +148,27 @@ const EmanuelPage: React.FC = () => {
                         <span>Output Tokens: <strong>{metadata.output_tokens}</strong></span>
                     </div>
                 )}
+                
+                {fileStoreInfo && (
+                    <div style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        display: 'inline-block',
+                        fontSize: '0.9rem',
+                        color: 'rgba(255, 255, 255, 0.9)'
+                    }}>
+                        <span style={{ marginRight: '15px' }}>
+                            File Store Size: <strong>{fileStoreInfo.size_mb} MB</strong>
+                        </span>
+                        {fileStoreInfo.upload_date && (
+                            <span>
+                                Uploaded: <strong>{new Date(fileStoreInfo.upload_date).toLocaleString()}</strong>
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="chat-window" style={{
@@ -165,7 +201,7 @@ const EmanuelPage: React.FC = () => {
                     }}>
                         {msg.role === 'emanuel' && (
                             <img
-                                src="/src/assets/emanuel.png"
+                                src="/assets/emanuel.png"
                                 alt="Emanuel"
                                 style={{
                                     width: '35px',
