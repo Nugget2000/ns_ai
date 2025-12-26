@@ -37,6 +37,8 @@ RUN npm run build
 # Expose port 80 (Cloud Run default)
 EXPOSE 80
 
-# Start the BFF server
-CMD ["node", "server.js"]
-#CMD ["npm", "run", "dev"]
+# Make start script executable
+RUN chmod +x start.sh
+
+# Start using the start script
+CMD ["./start.sh"]
