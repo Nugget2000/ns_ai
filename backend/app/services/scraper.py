@@ -5,10 +5,45 @@ from urllib.parse import urljoin, urlparse
 import time
 import logging
 import re
+import sys
+from google import genai
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def load_env():
+    """Manually load .env file to ensure GEMINI_API_KEY is available."""
+    # Try multiple common locations for .env
+    env_paths = [
+        os.path.join(os.getcwd(), ".env"),
+        os.path.join(os.getcwd(), "backend", ".env"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "backend", ".env")
+    ]
+    
+    for env_path in env_paths:
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            # Handle "export KEY=VALUE" or just "KEY=VALUE"
+                            if line.startswith("export "):
+                                line = line[7:].strip()
+                            
+                            if "=" in line:
+                                key, value = line.split("=", 1)
+                                os.environ[key.strip()] = value.strip().strip('"').strip("'")
+                logger.info(f"Loaded environment variables from {env_path}")
+                return True
+            except Exception as e:
+                logger.error(f"Error loading {env_path}: {e}")
+    return False
+
+# Load environment variables at the start
+load_env()
 
 class ScraperService:
     def __init__(self, cache_dir: str = "backend/cache", prompt_file: str = "backend/emanuel_prompt.txt"):
@@ -19,6 +54,14 @@ class ScraperService:
         # Ensure cache directory exists
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
+            
+        # Initialize Gemini Client
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.gemini_client = None
+        if self.api_key:
+            self.gemini_client = genai.Client(api_key=self.api_key)
+        else:
+            logger.warning("GEMINI_API_KEY not set, will not be able to update file search store.")
 
     def is_valid_url(self, url: str, base_domain: str) -> bool:
         """
@@ -109,6 +152,7 @@ class ScraperService:
                 
                 # Be polite
                 time.sleep(0.1)
+                break
                 
             except Exception as e:
                 logger.error(f"Failed to scrape {current_url}: {e}")
@@ -196,15 +240,84 @@ class ScraperService:
         
         # Save to Firestore
         try:
-            # Try to import here to avoid circular imports or issues when running as script without proper path
-            # Note: This assumes the script is run in a way that 'app' module is resolvable 
-            # or we are in the backend context.
-            from ..services.firebase import save_emanuel_prompt
-            save_emanuel_prompt(full_prompt)
-        except ImportError:
-            logger.warning("Could not import save_emanuel_prompt from app.services.firebase. Skipping Firestore save.")
+            # Add backend to sys.path to ensure absolute imports work
+            backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            if backend_dir not in sys.path:
+                sys.path.append(backend_dir)
+            
+            try:
+                from app.services.firebase import save_emanuel_prompt
+            except ImportError:
+                # Fallback for different run contexts
+                from services.firebase import save_emanuel_prompt
+            
+            # Firestore has a 1MB limit per document. 
+            # If prompt is larger, we should skip saving or handle it.
+            if len(full_prompt.encode('utf-8')) > 1048000:
+                logger.warning("Prompt exceeds Firestore 1MB limit. Skipping Firestore save. Gemini store will still be updated.")
+            else:
+                save_emanuel_prompt(full_prompt)
         except Exception as e:
             logger.error(f"Failed to save to Firestore: {e}")
+
+    def update_gemini_store(self):
+        """
+        Uploads the compiled prompt file to Gemini's file search store.
+        """
+        if not self.gemini_client:
+            logger.error("Gemini client not initialized. Cannot update file store.")
+            return
+
+        store_name = 'emanuel_scrape_store'
+        logger.info(f"Checking for Gemini file search store: {store_name}")
+        
+        try:
+            # List available stores
+            file_search_stores = self.gemini_client.file_search_stores.list()
+            file_search_store = None
+            for store in file_search_stores:
+                if store.display_name == store_name:
+                    file_search_store = store
+                    break
+            
+            if not file_search_store:
+                logger.info(f"Creating new file search store: {store_name}")
+                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
+            else:
+                logger.info(f"Found existing store: {file_search_store.name}")
+                # We want to replace the content, so we might want to delete existing files in it
+                # or just upload and let it handle it. Gemini's upload_to_file_search_store 
+                # usually adds to the store. 
+                # If we want a fresh start, we could delete the store and recreate it.
+                # Given the requirement "update the file_search_store", let's keep it simple for now.
+                # However, many stores might accumulate versions. 
+                # Let's delete and recreate to ensure it only has the latest prompt.
+                logger.info(f"Deleting old store {file_search_store.name} to ensure fresh data.")
+                self.gemini_client.file_search_stores.delete(name=file_search_store.name, config={"force": True})
+                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
+
+            logger.info(f"Uploading {self.prompt_file} to Gemini...")
+            
+            # Note: The 'file' parameter expects a path or file-like object
+            operation = self.gemini_client.file_search_stores.upload_to_file_search_store(
+                file=self.prompt_file,
+                file_search_store_name=file_search_store.name,
+                config={
+                    'display_name': 'emanuel_prompt',
+                }
+            )
+            
+            while not operation.done:
+                logger.info("Uploading file to Gemini...")
+                time.sleep(2)
+                operation = self.gemini_client.operations.get(operation)
+            
+            logger.info("Gemini file search store updated successfully.")
+            
+        except Exception as e:
+            logger.error(f"Error updating Gemini file search store: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
 
     def run(self) -> dict:
         """
@@ -234,6 +347,9 @@ class ScraperService:
             summary["total_chars_saved"] += site_stats["chars_saved"]
             
         self.compile_prompt()
+        
+        # After compilation, update Gemini
+        self.update_gemini_store()
         
         end_time = time.time()
         summary["time_taken_seconds"] = round(end_time - start_time, 2)

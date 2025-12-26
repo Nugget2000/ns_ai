@@ -97,43 +97,27 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
         #    print(f"deleting...{file_search_store.name}")
         #    client.file_search_stores.delete(name=file_search_store.name, config={"force": True})
 
-        # list the file search stores
-        print("Listing file search stores")
-        for file_search_store in client.file_search_stores.list():
-            print(f"file search store: {file_search_store}")
-
-
-        file_search_stores = client.file_search_stores.list()
-        check_file_search_store = [file_search_store for file_search_store in file_search_stores if file_search_store.display_name == 'emanuel_scrape_store']
-           
-
-        # upload file if file doesnt exists in emanuel_search_store
+        # check if file search store exists and has content
         print("Checking for file in emanuel_scrape_store")
+        file_search_stores = client.file_search_stores.list()
         file_search_store = None
         for store in file_search_stores:
             if store.display_name == 'emanuel_scrape_store':
                 file_search_store = store
                 break
+
         
         if file_search_store:
             print(f"File found in emanuel_scrape_store. name={file_search_store.name} size_bytes={file_search_store.size_bytes} display_name={file_search_store.display_name}. created={file_search_store.create_time} updated={file_search_store.update_time}")
+            if not file_search_store.size_bytes or file_search_store.size_bytes == 0:
+                print("Error: emanuel_scrape_store is empty.")
+                yield json.dumps({"type": "error", "text": "Emanuel's knowledge base is empty. Please run the scraper to update it."}) + "\n"
+                return
         else:
-            print("No file store found, creating...")
-            file_search_store = client.file_search_stores.create(config={'display_name': 'emanuel_scrape_store'})
+            print("No file search store found.")
+            yield json.dumps({"type": "error", "text": "Emanuel's knowledge base (file_search_store) not found. Please run the scraper."}) + "\n"
+            return
 
-            print("File not found in emanuel_scrape_store, uploading...")
-            operation = client.file_search_stores.upload_to_file_search_store(
-                file='emanuel_prompt.txt',
-                file_search_store_name=file_search_store.name,
-                config={
-                    'display_name' : 'emanuel_prompt',
-                }
-            )
-            while not operation.done:
-                print("Uploading file...")
-                time.sleep(1)
-                operation = client.operations.get(operation)
-            print("File uploaded successfully")
 
 
         print("generating response...")        
