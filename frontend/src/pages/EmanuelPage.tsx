@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getFileStoreInfo, FileStoreInfoResponse } from '../api';
+import { getFileStoreInfo, type FileStoreInfoResponse } from '../api';
 import '../styles/BloodDrop.css';
 
 interface Message {

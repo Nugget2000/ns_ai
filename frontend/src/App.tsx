@@ -11,25 +11,29 @@ import TributePage from './pages/TributePage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import './App.css';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <>
+    <div className="app-wrapper">
       {isAuthenticated && <Navbar />}
-      <Routes>
-
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
-        <Route path="/" element={<ProtectedRoute requiredRole="user"><LandingPage /></ProtectedRoute>} />
-        <Route path="/emanuel" element={<ProtectedRoute requiredRole="user"><EmanuelPage /></ProtectedRoute>} />
-        <Route path="/insights" element={<ProtectedRoute requiredRole="user"><InsightsPage /></ProtectedRoute>} />
-        <Route path="/feedback" element={<ProtectedRoute requiredRole="user"><FeedbackPage /></ProtectedRoute>} />
-        <Route path="/about" element={<ProtectedRoute requiredRole="user"><AboutPage /></ProtectedRoute>} />
-        <Route path="/tribute" element={<ProtectedRoute requiredRole="user"><TributePage /></ProtectedRoute>} />
-      </Routes>
-    </>
+      <main className="app-main">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute requiredRole="user"><LandingPage /></ProtectedRoute>} />
+          <Route path="/emanuel" element={<ProtectedRoute requiredRole="user"><EmanuelPage /></ProtectedRoute>} />
+          <Route path="/insights" element={<ProtectedRoute requiredRole="user"><InsightsPage /></ProtectedRoute>} />
+          <Route path="/feedback" element={<ProtectedRoute requiredRole="user"><FeedbackPage /></ProtectedRoute>} />
+          <Route path="/about" element={<ProtectedRoute requiredRole="user"><AboutPage /></ProtectedRoute>} />
+          <Route path="/tribute" element={<ProtectedRoute requiredRole="user"><TributePage /></ProtectedRoute>} />
+        </Routes>
+      </main>
+      {isAuthenticated && <Footer />}
+    </div>
   );
 };
 
