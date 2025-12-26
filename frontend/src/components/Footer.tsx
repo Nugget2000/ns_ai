@@ -29,13 +29,12 @@ const Footer: React.FC = () => {
                 <div className="footer-section">
                     {version && (
                         <div className="footer-item">
-                            <span className="footer-label">Version</span>
                             <span className="footer-value">v{version}</span>
                         </div>
                     )}
                     {pageCount !== null && (
                         <div className="footer-item">
-                            <span className="footer-label">Views</span>
+                            <span className="footer-label">views</span>
                             <span className="footer-value">{pageCount.toLocaleString()}</span>
                         </div>
                     )}

@@ -6,7 +6,7 @@ import emanuel from '../assets/emanuel.png';
 import hanna from '../assets/hanna.png';
 import cora from '../assets/cora.png';
 import benny from '../assets/benny.png';
-import { Menu, X, Home, MessageSquare, Info, Heart, LogOut, Shield } from 'lucide-react';
+import { Menu, X, Home, LogOut, Shield } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -49,9 +49,6 @@ const Navbar: React.FC = () => {
         { to: '/', label: 'Home', icon: <Home size={18} />, image: null },
         { to: '/emanuel', label: 'Emanuel', icon: null, image: emanuel },
         { to: '/insights', label: 'Insights', icon: null, image: 'group', images: [hanna, cora, benny] },
-        { to: '/feedback', label: 'Feedback', icon: <MessageSquare size={18} />, image: null },
-        { to: '/about', label: 'About', icon: <Info size={18} />, image: null },
-        { to: '/tribute', label: 'Tribute', icon: <Heart size={18} />, image: null },
     ];
 
     if (userProfile?.role === 'admin') {
@@ -66,7 +63,7 @@ const Navbar: React.FC = () => {
                     <span className="navbar-brand-text">NS AI</span>
                 </Link>
 
-                <button 
+                <button
                     className={`mobile-menu-button ${isMobileMenuOpen ? 'active' : ''}`}
                     onClick={toggleMobileMenu}
                     aria-label="Toggle menu"
@@ -126,8 +123,8 @@ const Navbar: React.FC = () => {
                             <span className="nav-link-text">{link.label}</span>
                         </Link>
                     ))}
-                    <button 
-                        onClick={handleLogout} 
+                    <button
+                        onClick={handleLogout}
                         className="logout-button mobile-logout"
                     >
                         <LogOut size={18} />

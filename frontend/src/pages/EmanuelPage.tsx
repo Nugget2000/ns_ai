@@ -3,6 +3,7 @@ import { auth } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getFileStoreInfo, type FileStoreInfoResponse } from '../api';
+import emanuelImage from '../assets/emanuel.png';
 import '../styles/BloodDrop.css';
 
 interface Message {
@@ -129,46 +130,12 @@ const EmanuelPage: React.FC = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', height: '95vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="container" style={{ maxWidth: '1400px', width: '90%', margin: '0 auto', padding: '20px', height: '70vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <h1 className="text-pop" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Chat with Emanuel</h1>
                 <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.1rem' }}>Your expert guide to Nightscout and Loop documentation.</p>
 
-                {metadata && (
-                    <div style={{
-                        marginTop: '10px',
-                        padding: '8px 16px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '20px',
-                        display: 'inline-block',
-                        fontSize: '0.9rem',
-                        color: 'rgba(255, 255, 255, 0.9)'
-                    }}>
-                        <span style={{ marginRight: '15px' }}>Input Tokens: <strong>{metadata.input_tokens}</strong></span>
-                        <span>Output Tokens: <strong>{metadata.output_tokens}</strong></span>
-                    </div>
-                )}
-                
-                {fileStoreInfo && (
-                    <div style={{
-                        marginTop: '10px',
-                        padding: '8px 16px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '20px',
-                        display: 'inline-block',
-                        fontSize: '0.9rem',
-                        color: 'rgba(255, 255, 255, 0.9)'
-                    }}>
-                        <span style={{ marginRight: '15px' }}>
-                            File Store Size: <strong>{fileStoreInfo.size_mb} MB</strong>
-                        </span>
-                        {fileStoreInfo.upload_date && (
-                            <span>
-                                Uploaded: <strong>{new Date(fileStoreInfo.upload_date).toLocaleString()}</strong>
-                            </span>
-                        )}
-                    </div>
-                )}
+
             </div>
 
             <div className="chat-window" style={{
@@ -186,7 +153,7 @@ const EmanuelPage: React.FC = () => {
             }}>
                 {messages.length === 0 && (
                     <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)', marginTop: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                        <img src="/src/assets/emanuel.png" alt="Emanuel" style={{ width: '100px', height: '100px', borderRadius: '50%', opacity: 0.6, filter: 'grayscale(50%)' }} />
+                        <img src={emanuelImage} alt="Emanuel" style={{ width: '100px', height: '100px', borderRadius: '50%', opacity: 0.6, filter: 'grayscale(50%)' }} />
                         <p style={{ fontSize: '1.2rem' }}>Hello! I'm Emanuel. How can I help you today?</p>
                     </div>
                 )}
@@ -194,14 +161,14 @@ const EmanuelPage: React.FC = () => {
                 {messages.map((msg, index) => (
                     <div key={index} style={{
                         alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        maxWidth: '80%',
+                        maxWidth: '90%',
                         display: 'flex',
                         gap: '12px',
                         flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
                     }}>
                         {msg.role === 'emanuel' && (
                             <img
-                                src="/assets/emanuel.png"
+                                src={emanuelImage}
                                 alt="Emanuel"
                                 style={{
                                     width: '35px',
@@ -252,41 +219,65 @@ const EmanuelPage: React.FC = () => {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="input-area" style={{ display: 'flex', gap: '15px', position: 'relative', marginBottom: '20px' }}>
-                <input
-                    type="text"
+            <div className="input-area" style={{
+                display: 'flex',
+                gap: '20px',
+                position: 'relative',
+                marginBottom: '20px',
+                padding: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: '24px',
+                boxShadow: '0 0 30px rgba(0, 0, 0, 0.2), 0 0 15px rgba(129, 140, 248, 0.1)'
+            }}>
+                <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    }}
                     placeholder="Ask about Nightscout or Loop..."
                     disabled={isLoading}
+                    rows={2}
                     style={{
                         flex: 1,
                         padding: '16px 24px',
-                        borderRadius: '16px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        fontSize: '16px',
+                        borderRadius: '20px',
+                        border: '2px solid rgba(255, 255, 255, 0.1)',
+                        fontSize: '18px',
                         outline: 'none',
-                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                        backgroundColor: 'rgba(15, 23, 42, 0.8)',
                         color: 'var(--text-color)',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                        transition: 'all 0.3s ease'
+                        boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)',
+                        transition: 'all 0.3s ease',
+                        resize: 'none',
+                        fontFamily: 'inherit'
+                    }}
+                    onFocus={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--primary-color)';
+                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(129, 140, 248, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.2)';
                     }}
                 />
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
                     style={{
-                        padding: '16px 32px',
-                        borderRadius: '16px',
+                        padding: '16px 40px',
+                        borderRadius: '20px',
                         border: 'none',
                         background: isLoading ? 'rgba(255, 255, 255, 0.1)' : 'linear-gradient(135deg, var(--primary-color), var(--accent-color))',
                         color: 'white',
-                        fontSize: '16px',
-                        fontWeight: '600',
+                        fontSize: '18px',
+                        fontWeight: '700',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s ease',
-                        boxShadow: isLoading ? 'none' : '0 4px 12px rgba(129, 140, 248, 0.3)'
+                        boxShadow: isLoading ? 'none' : '0 10px 20px -5px rgba(129, 140, 248, 0.4)'
                     }}
                 >
                     {isLoading ? (
@@ -300,22 +291,52 @@ const EmanuelPage: React.FC = () => {
                 </button>
             </div>
 
-            {systemPrompt && (
+            {(metadata || fileStoreInfo || systemPrompt) && (
                 <div style={{
                     marginTop: 'auto',
-                    padding: '15px',
+                    padding: '12px 20px',
                     backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                    borderRadius: '10px',
-                    fontSize: '0.8rem',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    maxHeight: '150px',
-                    overflowY: 'auto',
-                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                    borderRadius: '12px',
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
                 }}>
-                    <details>
-                        <summary style={{ cursor: 'pointer', fontWeight: 'bold', marginBottom: '5px' }}>System Prompt (Debug)</summary>
-                        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>{systemPrompt}</pre>
-                    </details>
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {metadata && (
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <span>input: <strong>{metadata.input_tokens}</strong></span>
+                                <span>output: <strong>{metadata.output_tokens}</strong></span>
+                            </div>
+                        )}
+                        {fileStoreInfo && (
+                            <div style={{ display: 'flex', gap: '12px', borderLeft: (metadata ? '1px solid rgba(255,255,255,0.1)' : 'none'), paddingLeft: (metadata ? '12px' : '0') }}>
+                                <span>file store: <strong>{fileStoreInfo.size_mb} MB</strong></span>
+                                {fileStoreInfo.upload_date && (
+                                    <span>updated: <strong>{new Date(fileStoreInfo.upload_date).toLocaleDateString()}</strong></span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {systemPrompt && (
+                        <details>
+                            <summary style={{ cursor: 'pointer', opacity: 0.8 }}>system prompt debug</summary>
+                            <pre style={{
+                                whiteSpace: 'pre-wrap',
+                                fontFamily: 'monospace',
+                                margin: '8px 0 0 0',
+                                maxHeight: '100px',
+                                overflowY: 'auto',
+                                padding: '10px',
+                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                borderRadius: '6px',
+                                color: 'rgba(255,255,255,0.3)'
+                            }}>{systemPrompt}</pre>
+                        </details>
+                    )}
                 </div>
             )}
         </div>
