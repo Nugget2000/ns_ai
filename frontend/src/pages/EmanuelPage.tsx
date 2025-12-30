@@ -138,10 +138,15 @@ const EmanuelPage: React.FC = () => {
 
             </div>
 
-            <div className="chat-window" style={{
-                flex: 1,
-                overflowY: 'auto',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+            <div
+                className="chat-window"
+                role="log"
+                aria-live="polite"
+                aria-label="Chat history"
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '20px',
                 padding: '25px',
                 backgroundColor: 'var(--card-bg)',
@@ -197,10 +202,15 @@ const EmanuelPage: React.FC = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         code: ({ node, ...props }) => {
                                             const match = /language-(\w+)/.exec(props.className || '')
                                             return match ? (
@@ -233,6 +243,7 @@ const EmanuelPage: React.FC = () => {
                 boxShadow: '0 0 30px rgba(0, 0, 0, 0.2), 0 0 15px rgba(129, 140, 248, 0.1)'
             }}>
                 <textarea
+                    aria-label="Chat input"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
