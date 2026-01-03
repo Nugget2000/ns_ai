@@ -24,7 +24,7 @@ const BackendStatus: React.FC = () => {
                 setStatus('unhealthy');
                 setStatusMessage('Backend returned unexpected status');
             }
-        } catch (error) {
+        } catch {
             setStatus('unhealthy');
             setStatusMessage('Backend unavailable');
         }
@@ -40,14 +40,29 @@ const BackendStatus: React.FC = () => {
     };
 
     useEffect(() => {
+        let mounted = true;
+
+        const check = async () => {
+            if (mounted) await checkBackend();
+        };
+
+        const track = async () => {
+            if (mounted) await trackPageLoad();
+        };
+
         // Initial check
-        checkBackend();
-        trackPageLoad();
+        void check();
+        void track();
 
         // Auto-refresh health every 5 minutes
-        const interval = setInterval(checkBackend, 300000);
+        const interval = setInterval(() => {
+             void check();
+        }, 300000);
 
-        return () => clearInterval(interval);
+        return () => {
+            mounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     const getStatusIcon = () => {

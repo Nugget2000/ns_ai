@@ -28,6 +28,7 @@ const AdminPage: React.FC = () => {
     const handleRoleChange = async (uid: string, newRole: string) => {
         try {
             await updateUserRole(uid, newRole);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
         } catch (err) {
             console.error('Failed to update status', err);
