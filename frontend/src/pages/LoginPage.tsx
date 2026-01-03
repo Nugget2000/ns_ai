@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import DiabetesAIIcon from '../components/DiabetesAIIcon';
 
@@ -57,7 +58,14 @@ const LoginPage: React.FC = () => {
                         className="login-button"
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Signing in...' : 'Sign in with Google'}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="spinner" size={20} />
+                                <span>Signing in...</span>
+                            </>
+                        ) : (
+                            'Sign in with Google'
+                        )}
                     </button>
                 </div>
 
