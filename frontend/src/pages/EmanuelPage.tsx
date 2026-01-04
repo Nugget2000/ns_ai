@@ -197,11 +197,11 @@ const EmanuelPage: React.FC = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
-                                        p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
-                                        ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
-                                        ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
-                                        code: ({ node, ...props }) => {
+                                        a: ({ ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        p: ({ ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        ul: ({ ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        ol: ({ ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        code: ({ ...props }) => {
                                             const match = /language-(\w+)/.exec(props.className || '')
                                             return match ? (
                                                 <div style={{ backgroundColor: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', overflowX: 'auto', margin: '10px 0' }}>
