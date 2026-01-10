@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import { getUsers, updateUserRole, type User } from '../api';
 import './AdminPage.css';
 
@@ -7,6 +8,7 @@ const AdminPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [processingAction, setProcessingAction] = useState<{ uid: string, role: string } | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -26,12 +28,15 @@ const AdminPage: React.FC = () => {
     }, []);
 
     const handleRoleChange = async (uid: string, newRole: string) => {
+        setProcessingAction({ uid, role: newRole });
         try {
             await updateUserRole(uid, newRole);
-            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as User['role'] } : u));
         } catch (err) {
             console.error('Failed to update status', err);
             alert('Failed to update status');
+        } finally {
+            setProcessingAction(null);
         }
     };
 
@@ -83,22 +88,35 @@ const AdminPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'user')}
                                                         className="btn-action btn-approve"
-                                                        disabled={user.role === 'user'}
+                                                        disabled={user.role === 'user' || processingAction?.uid === user.uid}
                                                     >
-                                                        Approve
+                                                        {processingAction?.uid === user.uid && processingAction?.role === 'user' ? (
+                                                            <LoaderCircle size={14} className="spinner" />
+                                                        ) : (
+                                                            "Approve"
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'pending')}
                                                         className="btn-action btn-suspend"
-                                                        disabled={user.role === 'pending'}
+                                                        disabled={user.role === 'pending' || processingAction?.uid === user.uid}
                                                     >
-                                                        Suspend
+                                                        {processingAction?.uid === user.uid && processingAction?.role === 'pending' ? (
+                                                            <LoaderCircle size={14} className="spinner" />
+                                                        ) : (
+                                                            "Suspend"
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'admin')}
                                                         className="btn-action btn-admin"
+                                                        disabled={processingAction?.uid === user.uid}
                                                     >
-                                                        Make Admin
+                                                         {processingAction?.uid === user.uid && processingAction?.role === 'admin' ? (
+                                                            <LoaderCircle size={14} className="spinner" />
+                                                        ) : (
+                                                            "Make Admin"
+                                                        )}
                                                     </button>
                                                 </>
                                             )}
