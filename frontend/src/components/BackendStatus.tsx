@@ -24,7 +24,7 @@ const BackendStatus: React.FC = () => {
                 setStatus('unhealthy');
                 setStatusMessage('Backend returned unexpected status');
             }
-        } catch (error) {
+        } catch {
             setStatus('unhealthy');
             setStatusMessage('Backend unavailable');
         }
@@ -41,11 +41,14 @@ const BackendStatus: React.FC = () => {
 
     useEffect(() => {
         // Initial check
-        checkBackend();
-        trackPageLoad();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void checkBackend();
+        void trackPageLoad();
 
         // Auto-refresh health every 5 minutes
-        const interval = setInterval(checkBackend, 300000);
+        const interval = setInterval(() => {
+            void checkBackend();
+        }, 300000);
 
         return () => clearInterval(interval);
     }, []);
