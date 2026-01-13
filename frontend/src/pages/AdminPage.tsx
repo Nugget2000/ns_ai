@@ -25,10 +25,10 @@ const AdminPage: React.FC = () => {
         fetchUsers();
     }, []);
 
-    const handleRoleChange = async (uid: string, newRole: string) => {
+    const handleRoleChange = async (uid: string, newRole: User['role']) => {
         try {
             await updateUserRole(uid, newRole);
-            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole } : u));
         } catch (err) {
             console.error('Failed to update status', err);
             alert('Failed to update status');

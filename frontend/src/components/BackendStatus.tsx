@@ -24,7 +24,7 @@ const BackendStatus: React.FC = () => {
                 setStatus('unhealthy');
                 setStatusMessage('Backend returned unexpected status');
             }
-        } catch (error) {
+        } catch {
             setStatus('unhealthy');
             setStatusMessage('Backend unavailable');
         }
@@ -41,6 +41,7 @@ const BackendStatus: React.FC = () => {
 
     useEffect(() => {
         // Initial check
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         checkBackend();
         trackPageLoad();
 
