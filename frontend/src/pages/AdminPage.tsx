@@ -1,11 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+import { Loader } from 'lucide-react';
 import { getUsers, updateUserRole, type User } from '../api';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState<Record<string, string | null>>({});
     const [error, setError] = useState<string | null>(null);
 
     const fetchUsers = async () => {
@@ -25,13 +27,17 @@ const AdminPage: React.FC = () => {
         fetchUsers();
     }, []);
 
-    const handleRoleChange = async (uid: string, newRole: string) => {
+    const handleRoleChange = async (uid: string, newRole: User['role']) => {
+        setActionLoading(prev => ({ ...prev, [uid]: newRole }));
         try {
             await updateUserRole(uid, newRole);
-            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole } : u));
+            setError(null);
         } catch (err) {
             console.error('Failed to update status', err);
-            alert('Failed to update status');
+            setError('Failed to update user status');
+        } finally {
+            setActionLoading(prev => ({ ...prev, [uid]: null }));
         }
     };
 
@@ -83,22 +89,38 @@ const AdminPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'user')}
                                                         className="btn-action btn-approve"
-                                                        disabled={user.role === 'user'}
+                                                        disabled={user.role === 'user' || !!actionLoading[user.uid]}
+                                                        aria-busy={actionLoading[user.uid] === 'user'}
                                                     >
-                                                        Approve
+                                                        {actionLoading[user.uid] === 'user' ? (
+                                                            <Loader className="spinner" size={16} />
+                                                        ) : (
+                                                            'Approve'
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'pending')}
                                                         className="btn-action btn-suspend"
-                                                        disabled={user.role === 'pending'}
+                                                        disabled={user.role === 'pending' || !!actionLoading[user.uid]}
+                                                        aria-busy={actionLoading[user.uid] === 'pending'}
                                                     >
-                                                        Suspend
+                                                        {actionLoading[user.uid] === 'pending' ? (
+                                                            <Loader className="spinner" size={16} />
+                                                        ) : (
+                                                            'Suspend'
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'admin')}
                                                         className="btn-action btn-admin"
+                                                        disabled={!!actionLoading[user.uid]}
+                                                        aria-busy={actionLoading[user.uid] === 'admin'}
                                                     >
-                                                        Make Admin
+                                                        {actionLoading[user.uid] === 'admin' ? (
+                                                            <Loader className="spinner" size={16} />
+                                                        ) : (
+                                                            'Make Admin'
+                                                        )}
                                                     </button>
                                                 </>
                                             )}
