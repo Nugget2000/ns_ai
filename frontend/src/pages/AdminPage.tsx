@@ -1,12 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { getUsers, updateUserRole, type User } from '../api';
+import { Loader2 } from 'lucide-react';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [processingAction, setProcessingAction] = useState<{ uid: string, role: string } | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -26,12 +28,16 @@ const AdminPage: React.FC = () => {
     }, []);
 
     const handleRoleChange = async (uid: string, newRole: string) => {
+        setProcessingAction({ uid, role: newRole });
+        setError(null);
         try {
             await updateUserRole(uid, newRole);
-            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as User['role'] } : u));
         } catch (err) {
             console.error('Failed to update status', err);
-            alert('Failed to update status');
+            setError('Failed to update status');
+        } finally {
+            setProcessingAction(null);
         }
     };
 
@@ -83,21 +89,31 @@ const AdminPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'user')}
                                                         className="btn-action btn-approve"
-                                                        disabled={user.role === 'user'}
+                                                        disabled={user.role === 'user' || processingAction?.uid === user.uid}
                                                     >
+                                                        {processingAction?.uid === user.uid && processingAction?.role === 'user' ? (
+                                                            <Loader2 className="spinner" size={14} />
+                                                        ) : null}
                                                         Approve
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'pending')}
                                                         className="btn-action btn-suspend"
-                                                        disabled={user.role === 'pending'}
+                                                        disabled={user.role === 'pending' || processingAction?.uid === user.uid}
                                                     >
+                                                        {processingAction?.uid === user.uid && processingAction?.role === 'pending' ? (
+                                                            <Loader2 className="spinner" size={14} />
+                                                        ) : null}
                                                         Suspend
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'admin')}
                                                         className="btn-action btn-admin"
+                                                        disabled={processingAction?.uid === user.uid}
                                                     >
+                                                        {processingAction?.uid === user.uid && processingAction?.role === 'admin' ? (
+                                                            <Loader2 className="spinner" size={14} />
+                                                        ) : null}
                                                         Make Admin
                                                     </button>
                                                 </>
