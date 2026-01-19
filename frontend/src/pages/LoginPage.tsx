@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DiabetesAIIcon from '../components/DiabetesAIIcon';
+import { Loader2 } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
     const [error, setError] = useState('');
@@ -56,7 +57,9 @@ const LoginPage: React.FC = () => {
                         onClick={handleLogin}
                         className="login-button"
                         disabled={isLoading}
+                        aria-busy={isLoading}
                     >
+                        {isLoading && <Loader2 className="spinner" size={20} />}
                         {isLoading ? 'Signing in...' : 'Sign in with Google'}
                     </button>
                 </div>
