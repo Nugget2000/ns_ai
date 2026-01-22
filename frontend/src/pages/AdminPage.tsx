@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { getUsers, updateUserRole, type User } from '../api';
 import './AdminPage.css';
 
@@ -7,6 +8,7 @@ const AdminPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [processingUid, setProcessingUid] = useState<string | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -26,12 +28,16 @@ const AdminPage: React.FC = () => {
     }, []);
 
     const handleRoleChange = async (uid: string, newRole: string) => {
+        setProcessingUid(uid);
+        setError(null);
         try {
             await updateUserRole(uid, newRole);
-            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as User['role'] } : u));
         } catch (err) {
             console.error('Failed to update status', err);
-            alert('Failed to update status');
+            setError('Failed to update user status. Please try again.');
+        } finally {
+            setProcessingUid(null);
         }
     };
 
@@ -48,7 +54,11 @@ const AdminPage: React.FC = () => {
                     <h1 className="admin-title">User Administration</h1>
                 </div>
 
-                {error && <div className="error-message">{error}</div>}
+                {error && (
+                    <div className="error-message" role="alert" aria-live="polite">
+                        {error}
+                    </div>
+                )}
 
                 <div className="table-container">
                     <table className="admin-table">
@@ -83,22 +93,29 @@ const AdminPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'user')}
                                                         className="btn-action btn-approve"
-                                                        disabled={user.role === 'user'}
+                                                        disabled={!!processingUid || user.role === 'user'}
+                                                        aria-busy={processingUid === user.uid}
+                                                        aria-label="Approve user"
                                                     >
-                                                        Approve
+                                                        {processingUid === user.uid ? <Loader2 className="spinner" size={16} /> : 'Approve'}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'pending')}
                                                         className="btn-action btn-suspend"
-                                                        disabled={user.role === 'pending'}
+                                                        disabled={!!processingUid || user.role === 'pending'}
+                                                        aria-busy={processingUid === user.uid}
+                                                        aria-label="Suspend user"
                                                     >
-                                                        Suspend
+                                                        {processingUid === user.uid ? <Loader2 className="spinner" size={16} /> : 'Suspend'}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRoleChange(user.uid, 'admin')}
                                                         className="btn-action btn-admin"
+                                                        disabled={!!processingUid}
+                                                        aria-busy={processingUid === user.uid}
+                                                        aria-label="Make user admin"
                                                     >
-                                                        Make Admin
+                                                        {processingUid === user.uid ? <Loader2 className="spinner" size={16} /> : 'Make Admin'}
                                                     </button>
                                                 </>
                                             )}

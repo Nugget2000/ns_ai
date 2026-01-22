@@ -92,6 +92,9 @@
     background: transparent;
     border: 1px solid transparent;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-approve {
