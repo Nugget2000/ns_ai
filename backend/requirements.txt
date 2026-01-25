@@ -5,5 +5,4 @@ firebase-admin
 google-generativeai
 google-genai
 google-cloud-logging
-requests
-beautifulsoup4
+playwright
