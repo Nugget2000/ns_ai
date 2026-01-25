@@ -22,7 +22,7 @@ const EmanuelPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [metadata, setMetadata] = useState<UsageMetadata | null>(null);
     const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
-    const [fileStoreInfo, setFileStoreInfo] = useState<FileStoreInfoResponse | null>(null);
+    const [fileStoreInfo, setFileStoreInfo] = useState<FileStoreInfoResponse[] | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -314,12 +314,18 @@ const EmanuelPage: React.FC = () => {
                                 <span>output: <strong>{metadata.output_tokens}</strong></span>
                             </div>
                         )}
-                        {fileStoreInfo && (
+                        {fileStoreInfo && fileStoreInfo.length > 0 && (
                             <div style={{ display: 'flex', gap: '12px', borderLeft: (metadata ? '1px solid rgba(255,255,255,0.1)' : 'none'), paddingLeft: (metadata ? '12px' : '0') }}>
-                                <span>file store: <strong>{fileStoreInfo.size_mb} MB</strong></span>
-                                {fileStoreInfo.upload_date && (
-                                    <span>updated: <strong>{new Date(fileStoreInfo.upload_date).toLocaleDateString()}</strong></span>
-                                )}
+                                {fileStoreInfo.map((info, idx) => (
+                                    <span key={idx} title={info.display_name || 'File'}>
+                                        file store ({info.display_name?.split('_').pop() || 'unknown'}): <strong>{info.size_mb} MB</strong>
+                                        {info.upload_date && (
+                                            <span style={{ marginLeft: '4px', fontSize: '0.9em', opacity: 0.8 }}>
+                                                updated: {new Date(info.upload_date).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </span>
+                                ))}
                             </div>
                         )}
                     </div>

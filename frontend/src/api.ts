@@ -114,7 +114,7 @@ export const updateUserRole = async (uid: string, role: string): Promise<User> =
     return await response.json();
 };
 
-export const getFileStoreInfo = async (): Promise<FileStoreInfoResponse> => {
+export const getFileStoreInfo = async (): Promise<FileStoreInfoResponse[]> => {
     try {
         const headers = await getAuthHeaders();
         const response = await fetch(`${API_BASE_URL}/emanuel/file-store-info`, { headers });
