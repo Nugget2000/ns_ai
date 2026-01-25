@@ -28,45 +28,33 @@ def get_emanuel_prompt():
 
 def get_file_store_info():
     """
-    Gets information about the emanuel_scrape_store file search store.
-    Returns dict with size_mb, upload_date, and display_name.
+    Gets information about all available file search stores.
+    Returns list of dicts, each with size_mb, upload_date, and display_name.
     """
     try:
         file_search_stores = client.file_search_stores.list()
-        store = None
-        for file_search_store in file_search_stores:
-            if file_search_store.display_name == 'emanuel_scrape_store':
-                store = file_search_store
-                break
+        stores_info = []
         
-        if not store:
-            return {
-                "size_mb": 0.0,
-                "upload_date": None,
-                "display_name": None
-            }
+        for store in file_search_stores:
+            # Convert size_bytes to MB
+            size_mb = store.size_bytes / (1024 * 1024) if store.size_bytes else 0.0
+            
+            # Use update_time as upload date (or create_time if update_time is not available)
+            upload_date = store.update_time if hasattr(store, 'update_time') and store.update_time else (
+                store.create_time if hasattr(store, 'create_time') and store.create_time else None
+            )
+            
+            stores_info.append({
+                "size_mb": round(size_mb, 2),
+                "upload_date": upload_date,
+                "display_name": store.display_name
+            })
         
-        # Convert size_bytes to MB
-        size_mb = store.size_bytes / (1024 * 1024) if store.size_bytes else 0.0
-        
-        # Use update_time as upload date (or create_time if update_time is not available)
-        upload_date = store.update_time if hasattr(store, 'update_time') and store.update_time else (
-            store.create_time if hasattr(store, 'create_time') and store.create_time else None
-        )
-        
-        return {
-            "size_mb": round(size_mb, 2),
-            "upload_date": upload_date,
-            "display_name": store.display_name
-        }
+        return stores_info
     except Exception as e:
         print(f"Error getting file store info: {e}")
         print(traceback.format_exc())
-        return {
-            "size_mb": 0.0,
-            "upload_date": None,
-            "display_name": None
-        }
+        return []
 
 
 
