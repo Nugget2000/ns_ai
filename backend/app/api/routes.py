@@ -35,7 +35,9 @@ class ChatRequest(BaseModel):
 async def chat_emanuel(request: ChatRequest, user: dict = Depends(get_active_user)):
     return StreamingResponse(generate_emanuel_response(request.message), media_type="application/x-ndjson")
 
-@router.get("/emanuel/file-store-info", response_model=FileStoreInfoResponse)
+from typing import List
+
+@router.get("/emanuel/file-store-info", response_model=List[FileStoreInfoResponse])
 async def get_file_store_info_endpoint(user: dict = Depends(get_active_user)):
     """Get information about the file search store."""
     try:
