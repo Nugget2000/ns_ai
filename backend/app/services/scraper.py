@@ -437,6 +437,39 @@ class ScraperService:
         except Exception as e:
             logger.error(f"Failed to save to Firestore: {e}")
 
+    def _log_file_store_contents(self) -> None:
+        """Log all available file search stores and their contents."""
+        if not self.gemini_client:
+            logger.warning("Gemini client not initialized. Cannot list file store contents.")
+            return
+
+        try:
+            logger.info("=" * 50)
+            logger.info("AVAILABLE FILE STORES (BEFORE SCRAPING)")
+            logger.info("=" * 50)
+
+            file_search_stores = self.gemini_client.file_search_stores.list()
+            store_count = 0
+
+            for store in file_search_stores:
+                store_count += 1
+                size_mb = store.size_bytes / (1024 * 1024) if store.size_bytes else 0.0
+                logger.info(f"Store: {store.display_name}")
+                logger.info(f"  - Name: {store.name}")
+                logger.info(f"  - Size: {size_mb:.2f} MB ({store.size_bytes or 0} bytes)")
+                logger.info(f"  - Created: {store.create_time}")
+                logger.info(f"  - Updated: {store.update_time}")
+
+            if store_count == 0:
+                logger.info("No file search stores found.")
+
+            logger.info("=" * 50)
+
+        except Exception as e:
+            logger.error(f"Error listing file store contents: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+
     def update_gemini_store(self) -> None:
         """Upload compiled prompt to Gemini file search store."""
         if not self.gemini_client:
@@ -455,7 +488,7 @@ class ScraperService:
                     file_search_store = store
                     break
 
-            # Delete existing store to ensure fresh data
+            # Delete existing store (with force=True) to delete store and all its files
             if file_search_store:
                 logger.info(f"Deleting old store to ensure fresh data")
                 self.gemini_client.file_search_stores.delete(
@@ -528,6 +561,9 @@ class ScraperService:
         
         Returns a summary of the operation.
         """
+        # Log all available files in the file store before starting
+        self._log_file_store_contents()
+
         start_time = time.time()
 
         sites = [
