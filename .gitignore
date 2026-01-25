@@ -8,6 +8,7 @@ __pycache__/
 
 # ignore all files in /backend/cache directory
 /backend/cache
+ns-ai-project-0f4b4e7b643b.json
 
 
 *.txt
