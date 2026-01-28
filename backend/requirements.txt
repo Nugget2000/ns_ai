@@ -6,3 +6,4 @@ google-generativeai
 google-genai
 google-cloud-logging
 playwright
+google-cloud-firestore

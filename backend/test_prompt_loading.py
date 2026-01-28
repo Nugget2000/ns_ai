@@ -4,7 +4,7 @@ import os
 # Add the current directory to sys.path so we can import app
 sys.path.append(os.getcwd())
 
-from app.services.gemini import get_emanuel_prompt
+from app.services.emanuel import get_emanuel_prompt
 
 def test_prompt_loading():
     print("Testing prompt loading...")

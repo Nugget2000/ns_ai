@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from ..models.schemas import CountResponse, HealthResponse, VersionResponse, FileStoreInfoResponse
 from ..services.firebase import increment_visitor_count
-from ..services.gemini import generate_emanuel_response, get_file_store_info
+from ..services.emanuel import generate_emanuel_response, get_file_store_info
 from ..core.config import settings
 from ..core.auth import verify_token, get_active_user
 from fastapi import Depends
