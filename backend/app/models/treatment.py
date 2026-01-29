@@ -8,8 +8,8 @@ class Treatment(BaseModel):
     eventType: str
     created_at: str
     
-    date: int
-    cached_at: str
+    date: Optional[int] = None
+    cached_at: Optional[str] = None
     
     glucose: Optional[float] = None
     glucoseType: Optional[str] = None
@@ -20,6 +20,8 @@ class Treatment(BaseModel):
     
     @computed_field
     @property
-    def date_date(self) -> datetime:
+    def date_date(self) -> Optional[datetime]:
         """Return the date as a datetime object."""
-        return datetime.fromtimestamp(self.date / 1000)
+        if self.date is not None:
+            return datetime.fromtimestamp(self.date / 1000)
+        return None

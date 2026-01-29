@@ -138,10 +138,12 @@ def get_nightscout_treatments(
 if __name__ == "__main__":
 
     result = get_nightscout_entries(
-        from_date="2024-01-01T00:00:00",
-        to_date="2024-01-02T00:00:00",
+        from_date="2026-01-29T00:00:00",
+        to_date="2026-01-30T00:00:00",
         count=10
     )
     print(result)    
     print(f"Fetched {len(result) if result else 0} entries")
+
+
 
