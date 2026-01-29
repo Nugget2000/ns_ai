@@ -57,6 +57,33 @@ class EntryInsights:
 
 
 @dataclass
+class TreatmentInsights:
+    """Insights calculated from treatments."""
+    
+    # Carbs
+    total_carbs: float  # Total carbs consumed (grams)
+    carb_correction_count: int  # Number of carb corrections
+    
+    # Insulin
+    total_insulin: float  # Total insulin delivered (units)
+    correction_bolus_count: int  # Number of correction boluses
+    
+    # Pump/Site
+    site_change_count: int  # Number of pump site changes
+    insulin_change_count: int  # Number of insulin/reservoir changes
+    pump_battery_change_count: int  # Number of pump battery changes
+    
+    # Basal
+    temp_basal_count: int  # Number of temp basal events
+    
+    # Overrides
+    temporary_override_count: int  # Number of temporary overrides
+    
+    # Summary
+    total_treatment_count: int  # Total number of all treatments
+
+
+@dataclass
 class DayData:
     """
     Container for a full day of Nightscout data with analysis capabilities.
@@ -183,6 +210,41 @@ class DayData:
             tight_high_threshold=round(tight_high_threshold, 1)
         )
 
+    def calculate_treatment_insights(self) -> TreatmentInsights:
+        """
+        Calculate all insights from the treatments.
+        
+        Returns:
+            TreatmentInsights object with all calculated metrics.
+        """
+        # Count treatments by event type
+        carb_corrections = [t for t in self.treatments if t.eventType == "Carb Correction"]
+        correction_boluses = [t for t in self.treatments if t.eventType == "Correction Bolus"]
+        site_changes = [t for t in self.treatments if t.eventType == "Site Change"]
+        insulin_changes = [t for t in self.treatments if t.eventType == "Insulin Change"]
+        battery_changes = [t for t in self.treatments if t.eventType == "Pump Battery Change"]
+        temp_basals = [t for t in self.treatments if t.eventType == "Temp Basal"]
+        temp_overrides = [t for t in self.treatments if t.eventType == "Temporary Override"]
+        
+        # Calculate total carbs from all treatments with carbs
+        total_carbs = sum(t.carbs for t in self.treatments if t.carbs is not None)
+        
+        # Calculate total insulin from all treatments with insulin
+        total_insulin = sum(t.insulin for t in self.treatments if t.insulin is not None)
+        
+        return TreatmentInsights(
+            total_carbs=round(total_carbs, 1),
+            carb_correction_count=len(carb_corrections),
+            total_insulin=round(total_insulin, 2),
+            correction_bolus_count=len(correction_boluses),
+            site_change_count=len(site_changes),
+            insulin_change_count=len(insulin_changes),
+            pump_battery_change_count=len(battery_changes),
+            temp_basal_count=len(temp_basals),
+            temporary_override_count=len(temp_overrides),
+            total_treatment_count=len(self.treatments)
+        )
+
 
 def get_day_data(
     date: datetime,
@@ -239,7 +301,7 @@ def get_day_data(
 
 
 def print_insights(insights: EntryInsights) -> None:
-    """Helper function to print insights."""
+    """Helper function to print entry insights."""
     unit = insights.unit
     print(f"\n=== Entry Insights ({unit}) ===")
     print(f"Total Readings: {insights.total_reading_count}")
@@ -256,6 +318,25 @@ def print_insights(insights: EntryInsights) -> None:
     print(f"\nEstimated HbA1c: {insights.estimated_hba1c}%")
 
 
+def print_treatment_insights(insights: TreatmentInsights) -> None:
+    """Helper function to print treatment insights."""
+    print("\n=== Treatment Insights ===")
+    print(f"Total Treatments: {insights.total_treatment_count}")
+    print(f"\n-- Carbs --")
+    print(f"Total Carbs: {insights.total_carbs}g")
+    print(f"Carb Corrections: {insights.carb_correction_count}")
+    print(f"\n-- Insulin --")
+    print(f"Total Insulin: {insights.total_insulin}U")
+    print(f"Correction Boluses: {insights.correction_bolus_count}")
+    print(f"\n-- Pump Events --")
+    print(f"Site Changes: {insights.site_change_count}")
+    print(f"Insulin/Reservoir Changes: {insights.insulin_change_count}")
+    print(f"Battery Changes: {insights.pump_battery_change_count}")
+    print(f"\n-- Basal/Overrides --")
+    print(f"Temp Basal Events: {insights.temp_basal_count}")
+    print(f"Temporary Overrides: {insights.temporary_override_count}")
+
+
 if __name__ == "__main__":
     # Test the data analysis service
     test_date = datetime(2026, 1, 29)
@@ -266,17 +347,21 @@ if __name__ == "__main__":
     if day_data:
         print(f"Fetched {len(day_data.entries)} entries and {len(day_data.treatments)} treatments")
         
-        # Show insights in mg/dL
+        # Show entry insights in mg/dL
         insights_mgdl = day_data.calculate_entry_insights(use_mmol=False)
         if insights_mgdl:
             print_insights(insights_mgdl)
         
-        # Show insights in mmol/L
+        # Show entry insights in mmol/L
         insights_mmol = day_data.calculate_entry_insights(use_mmol=True)
         if insights_mmol:
             print_insights(insights_mmol)
         
         if not insights_mgdl:
             print("No glucose readings found for insights calculation")
+        
+        # Show treatment insights
+        treatment_insights = day_data.calculate_treatment_insights()
+        print_treatment_insights(treatment_insights)
     else:
         print("Failed to fetch day data")
