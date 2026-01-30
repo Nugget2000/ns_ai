@@ -43,7 +43,8 @@ class EntryInsights:
     titr_percentage: float
     
     # Additional metrics
-    estimated_hba1c: float  # Estimated HbA1c based on average glucose
+    estimated_hba1c: float  # Estimated HbA1c NGSP/DCCT standard (%)
+    estimated_hba1c_ifcc: int  # Estimated HbA1c IFCC standard (mmol/mol)
     total_reading_count: int
     
     # Min/Max
@@ -202,6 +203,7 @@ class DayData:
             titr_minutes=titr_minutes,
             titr_percentage=round(titr_percentage, 1),
             estimated_hba1c=round(estimated_hba1c, 1),
+            estimated_hba1c_ifcc=round((estimated_hba1c - 2.15) * 10.929),
             total_reading_count=total_readings,
             min_glucose=round(min_glucose_val, 1),
             max_glucose=round(max_glucose_val, 1),
@@ -315,7 +317,7 @@ def print_insights(insights: EntryInsights) -> None:
     print(f"Time Below Range (<{insights.low_threshold}): {insights.tbr_minutes} min ({insights.tbr_percentage}%)")
     print(f"Time Above Range (>{insights.high_threshold}): {insights.tar_minutes} min ({insights.tar_percentage}%)")
     print(f"Time in Tight Range ({insights.low_threshold}-{insights.tight_high_threshold}): {insights.titr_minutes} min ({insights.titr_percentage}%)")
-    print(f"\nEstimated HbA1c: {insights.estimated_hba1c}%")
+    print(f"\nEstimated HbA1c: {insights.estimated_hba1c}% (NGSP) / {insights.estimated_hba1c_ifcc} mmol/mol (IFCC)")
 
 
 def print_treatment_insights(insights: TreatmentInsights) -> None:
