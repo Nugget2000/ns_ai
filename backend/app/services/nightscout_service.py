@@ -17,7 +17,8 @@ def get_nightscout_entries(
     api_token: str = settings.NIGHTSCOUT_API_TOKEN,
     from_date: str = "",
     to_date: str = "",
-    count: int = 0
+    count: int = 0,
+    user_id: str = None
 ) -> Optional[List[Entry]]:
     """
     Fetches and validates entries from the Nightscout API for a specific date range.
@@ -28,10 +29,12 @@ def get_nightscout_entries(
         from_date: The start date in ISO format (YYYY-MM-DDTHH:mm:ss).
         to_date: The end date in ISO format (YYYY-MM-DDTHH:mm:ss).
         count: The number of entries to fetch (0 for all in range).
+        user_id: Optional user ID for user-specific caching.
 
     Returns:
         A list of validated Entry objects, or None if an error occurred.
     """
+
     from_date_dt = datetime.fromisoformat(from_date) - timedelta(hours=1)
     to_date_dt = datetime.fromisoformat(to_date) - timedelta(hours=1)
 
@@ -39,7 +42,7 @@ def get_nightscout_entries(
     to_date_str = to_date_dt.isoformat()
 
     cache_key = f"entries_{from_date_str}_{to_date_str}_{count}"
-    cached_entries = get_cache(cache_key)
+    cached_entries = get_cache(cache_key, user_id=user_id)
 
     if cached_entries:
         print(f"cache hit for entries for date range {from_date_str} - {to_date_str}")
@@ -66,7 +69,7 @@ def get_nightscout_entries(
                 entry["date"] = int(entry["date"])
         
         
-        set_cache(cache_key, entries_data)
+        set_cache(cache_key, entries_data, user_id=user_id)
 
         validated_entries = [Entry.model_validate(entry_data) for entry_data in entries_data]
         return validated_entries
@@ -83,7 +86,8 @@ def get_nightscout_treatments(
     api_token: str = settings.NIGHTSCOUT_API_TOKEN,
     from_date: str = "",
     to_date: str = "",
-    count: int = 0
+    count: int = 0,
+    user_id: str = None
 ) -> Optional[List[Treatment]]:
     """
     Fetches and validates treatments from the Nightscout API for a specific date range.
@@ -94,6 +98,7 @@ def get_nightscout_treatments(
         from_date: The start date in ISO format (YYYY-MM-DDTHH:mm:ss).
         to_date: The end date in ISO format (YYYY-MM-DDTHH:mm:ss).
         count: The number of treatments to fetch (0 for all in range).
+        user_id: Optional user ID for user-specific caching.
 
     Returns:
         A list of validated Treatment objects, or None if an error occurred.
@@ -105,7 +110,7 @@ def get_nightscout_treatments(
     to_date_str = to_date_dt.isoformat()
 
     cache_key = f"treatments_{from_date_str}_{to_date_str}_{count}"
-    cached_treatments = get_cache(cache_key)
+    cached_treatments = get_cache(cache_key, user_id=user_id)
     if cached_treatments:
         return [Treatment.model_validate(treatment_data) for treatment_data in cached_treatments]
 
@@ -120,7 +125,7 @@ def get_nightscout_treatments(
         response.raise_for_status()  # Raise an exception for bad status codes
 
         treatments_data = response.json()
-        set_cache(cache_key, treatments_data)
+        set_cache(cache_key, treatments_data, user_id=user_id)
         for treatment in treatments_data:
             treatment['cached_at'] = datetime.now().isoformat()
         validated_treatments = [Treatment.model_validate(treatment_data) for treatment_data in treatments_data]

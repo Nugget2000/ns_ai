@@ -251,7 +251,8 @@ class DayData:
 def get_day_data(
     date: datetime,
     nightscout_url: Optional[str] = None,
-    api_token: Optional[str] = None
+    api_token: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Optional[DayData]:
     """
     Fetch a full day of data from Nightscout and return a DayData object.
@@ -260,6 +261,7 @@ def get_day_data(
         date: The date to fetch data for (time component is ignored).
         nightscout_url: Optional Nightscout URL (uses settings if not provided).
         api_token: Optional API token (uses settings if not provided).
+        user_id: Optional user ID for user-specific caching.
     
     Returns:
         DayData object populated with entries and treatments, or None on error.
@@ -277,6 +279,8 @@ def get_day_data(
         kwargs['nightscout_url'] = nightscout_url
     if api_token:
         kwargs['api_token'] = api_token
+    if user_id:
+        kwargs['user_id'] = user_id
     
     entries = get_nightscout_entries(
         from_date=from_date_str,
