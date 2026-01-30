@@ -5,6 +5,7 @@ import type { User as FirebaseUser } from 'firebase/auth';
 
 import { auth, googleProvider } from '../lib/firebase';
 import { getMe, type User as AppUser } from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface AuthContextType {
     firebaseUser: FirebaseUser | null;
@@ -66,9 +67,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout
     };
 
+    if (loading) {
+        return <LoadingScreen message="Connecting to your account..." />;
+    }
+
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };

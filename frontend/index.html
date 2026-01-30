@@ -4,10 +4,310 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>NS AI - Diabetes Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+      /* Initial loading screen styles - inline for immediate display */
+      :root {
+        --loader-bg: #0f172a;
+        --loader-primary: #818cf8;
+        --loader-secondary: #38bdf8;
+        --loader-accent: #c084fc;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--loader-bg);
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      
+      .initial-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        z-index: 9999;
+      }
+      
+      .loader-icon-container {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        animation: loader-float 3s ease-in-out infinite;
+      }
+      
+      @keyframes loader-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      
+      .loader-icon {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 30px rgba(129, 140, 248, 0.6));
+      }
+      
+      .loader-pulse-ring {
+        position: absolute;
+        inset: -20px;
+        border: 2px solid rgba(129, 140, 248, 0.3);
+        border-radius: 50%;
+        animation: loader-pulse 2s ease-out infinite;
+      }
+      
+      .loader-pulse-ring:nth-child(2) {
+        animation-delay: 0.5s;
+      }
+      
+      .loader-pulse-ring:nth-child(3) {
+        animation-delay: 1s;
+      }
+      
+      @keyframes loader-pulse {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(1.8);
+          opacity: 0;
+        }
+      }
+      
+      .loader-title {
+        margin-top: 2.5rem;
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--loader-primary), var(--loader-secondary), var(--loader-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
+      }
+      
+      .loader-subtitle {
+        margin-top: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: rgba(248, 250, 252, 0.7);
+        letter-spacing: 0.05em;
+      }
+      
+      /* Glucose wave animation */
+      .glucose-wave-container {
+        margin-top: 2.5rem;
+        width: 200px;
+        height: 50px;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .glucose-wave {
+        position: absolute;
+        width: 400px;
+        height: 100%;
+        animation: glucose-flow 2s linear infinite;
+      }
+      
+      @keyframes glucose-flow {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-200px); }
+      }
+      
+      /* Loading dots */
+      .loader-dots {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 2rem;
+      }
+      
+      .loader-dot {
+        width: 10px;
+        height: 10px;
+        background: linear-gradient(135deg, var(--loader-primary), var(--loader-accent));
+        border-radius: 50%;
+        animation: loader-bounce 1.4s ease-in-out infinite both;
+      }
+      
+      .loader-dot:nth-child(1) { animation-delay: -0.32s; }
+      .loader-dot:nth-child(2) { animation-delay: -0.16s; }
+      .loader-dot:nth-child(3) { animation-delay: 0s; }
+      
+      @keyframes loader-bounce {
+        0%, 80%, 100% {
+          transform: scale(0.6);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      
+      .loader-message {
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+        color: rgba(248, 250, 252, 0.5);
+        text-align: center;
+        max-width: 280px;
+        line-height: 1.5;
+      }
+      
+      /* Neural network background */
+      .neural-bg {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0.15;
+        pointer-events: none;
+      }
+      
+      .neural-node {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: var(--loader-secondary);
+        border-radius: 50%;
+        animation: neural-pulse 3s ease-in-out infinite;
+      }
+      
+      @keyframes neural-pulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.5); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial loading screen - replaced by React when app mounts -->
+      <div class="initial-loader" id="initial-loader">
+        <!-- Neural network background decorations -->
+        <div class="neural-bg">
+          <div class="neural-node" style="top: 15%; left: 10%; animation-delay: 0s;"></div>
+          <div class="neural-node" style="top: 25%; left: 85%; animation-delay: 0.5s;"></div>
+          <div class="neural-node" style="top: 70%; left: 15%; animation-delay: 1s;"></div>
+          <div class="neural-node" style="top: 80%; left: 90%; animation-delay: 1.5s;"></div>
+          <div class="neural-node" style="top: 45%; left: 5%; animation-delay: 0.3s;"></div>
+          <div class="neural-node" style="top: 55%; left: 95%; animation-delay: 0.8s;"></div>
+        </div>
+        
+        <!-- Main icon with pulse rings -->
+        <div class="loader-icon-container">
+          <div class="loader-pulse-ring"></div>
+          <div class="loader-pulse-ring"></div>
+          <div class="loader-pulse-ring"></div>
+          <svg class="loader-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Blood drop outline - diabetes symbol -->
+            <path
+              d="M60 20 C60 20, 40 45, 40 65 C40 78, 48 88, 60 88 C72 88, 80 78, 80 65 C80 45, 60 20, 60 20 Z"
+              stroke="url(#loaderGrad1)"
+              stroke-width="2.5"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <animate attributeName="stroke-dasharray" values="0 200;150 50;0 200" dur="3s" repeatCount="indefinite"/>
+            </path>
+            
+            <!-- Neural network nodes - AI symbol -->
+            <circle cx="60" cy="45" r="4" fill="url(#loaderGrad2)" opacity="0.9">
+              <animate attributeName="r" values="4;5;4" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="50" cy="58" r="3.5" fill="url(#loaderGrad3)" opacity="0.8">
+              <animate attributeName="r" values="3.5;4.5;3.5" dur="2s" begin="0.2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="58" r="3.5" fill="url(#loaderGrad3)" opacity="0.8">
+              <animate attributeName="r" values="3.5;4.5;3.5" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="45" cy="70" r="3" fill="url(#loaderGrad2)" opacity="0.7">
+              <animate attributeName="r" values="3;4;3" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="60" cy="72" r="3" fill="url(#loaderGrad2)" opacity="0.7">
+              <animate attributeName="r" values="3;4;3" dur="2s" begin="0.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="75" cy="70" r="3" fill="url(#loaderGrad2)" opacity="0.7">
+              <animate attributeName="r" values="3;4;3" dur="2s" begin="1s" repeatCount="indefinite"/>
+            </circle>
+
+            <!-- Neural connections with animation -->
+            <line x1="60" y1="45" x2="50" y2="58" stroke="url(#loaderGrad2)" stroke-width="1.5" opacity="0.6">
+              <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+            </line>
+            <line x1="60" y1="45" x2="70" y2="58" stroke="url(#loaderGrad2)" stroke-width="1.5" opacity="0.6">
+              <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" begin="0.1s" repeatCount="indefinite"/>
+            </line>
+            <line x1="50" y1="58" x2="45" y2="70" stroke="url(#loaderGrad3)" stroke-width="1.5" opacity="0.5">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+            </line>
+            <line x1="50" y1="58" x2="60" y2="72" stroke="url(#loaderGrad3)" stroke-width="1.5" opacity="0.5">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+            </line>
+            <line x1="70" y1="58" x2="60" y2="72" stroke="url(#loaderGrad3)" stroke-width="1.5" opacity="0.5">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" begin="0.4s" repeatCount="indefinite"/>
+            </line>
+            <line x1="70" y1="58" x2="75" y2="70" stroke="url(#loaderGrad3)" stroke-width="1.5" opacity="0.5">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+            </line>
+
+            <!-- Gradient definitions -->
+            <defs>
+              <linearGradient id="loaderGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="50%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#c084fc"/>
+              </linearGradient>
+              <linearGradient id="loaderGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#818cf8"/>
+              </linearGradient>
+              <linearGradient id="loaderGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c084fc"/>
+                <stop offset="50%" stop-color="#818cf8"/>
+                <stop offset="100%" stop-color="#38bdf8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        
+        <h1 class="loader-title">NS AI</h1>
+        <p class="loader-subtitle">The microbolus generation</p>
+        
+        <!-- Glucose wave visualization -->
+        <div class="glucose-wave-container">
+          <svg class="glucose-wave" viewBox="0 0 400 50" preserveAspectRatio="none">
+            <path 
+              d="M0 25 Q25 10, 50 25 T100 25 T150 25 T200 25 T250 25 T300 25 T350 25 T400 25" 
+              stroke="url(#waveGrad)" 
+              stroke-width="2" 
+              fill="none"
+              stroke-linecap="round"
+            />
+            <defs>
+              <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#818cf8" stop-opacity="0"/>
+                <stop offset="50%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#c084fc" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        
+        <!-- Loading dots -->
+        <div class="loader-dots">
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+        </div>
+        
+        <p class="loader-message">Initializing AI-powered diabetes analytics...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
