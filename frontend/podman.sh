@@ -17,6 +17,8 @@ podman build \
   --build-arg VITE_FIREBASE_STORAGE_BUCKET="$VITE_FIREBASE_STORAGE_BUCKET" \
   --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="$VITE_FIREBASE_MESSAGING_SENDER_ID" \
   --build-arg VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID" \
+  --build-arg BACKEND_URL="$BACKEND_URL" \
+  --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
   -t frontend .
 
 # Run the Podman container
@@ -24,6 +26,9 @@ podman build \
 podman run --rm -it \
   --name frontend \
   --network host \
-  -e BACKEND_URL="http://localhost:8000" \
+  -v "$PWD":/src \
+  -v /src/node_modules \
+  -e BACKEND_URL="http://localhost:8085" \
+  -e VITE_API_BASE_URL="http://localhost:8085" \
   -e NODE_ENV="development" \
   frontend
