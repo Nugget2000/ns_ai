@@ -138,17 +138,128 @@ def get_nightscout_treatments(
         print(f"Error validating Nightscout data: {e}")
         return None
 
+def test_nightscout_connection(nightscout_url: str) -> dict:
+    """
+    Test a Nightscout connection by fetching the latest glucose entry.
+    
+    Args:
+        nightscout_url: The full Nightscout URL with token, e.g., 
+                       "https://site.example.com?token=xxx" or
+                       "https://site.example.com/api/v1/entries.json?token=xxx"
+    
+    Returns:
+        A dict with:
+        - success: bool
+        - sgv: glucose value in mg/dL (if success)
+        - timestamp: ISO timestamp of reading (if success)
+        - time_ago: human-readable time ago string (if success)
+        - error: error message (if not success)
+    """
+    try:
+        # Parse the URL to extract base URL and token
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        
+        parsed = urlparse(nightscout_url)
+        query_params = parse_qs(parsed.query)
+        
+        # Extract token from query params
+        token = query_params.get('token', [None])[0]
+        if not token:
+            return {
+                "success": False,
+                "error": "No token found in URL. Format: https://yoursite.example.com?token=xxx"
+            }
+        
+        # Build the base URL without query params
+        base_url = urlunparse((parsed.scheme, parsed.netloc, '', '', '', ''))
+        
+        if not base_url:
+            return {
+                "success": False,
+                "error": "Invalid URL format"
+            }
+        
+        # Fetch latest entry
+        request_url = f"{base_url}/api/v1/entries.json?token={token}&count=1"
+        response = requests.get(request_url, timeout=10)
+        
+        if response.status_code == 401:
+            return {
+                "success": False,
+                "error": "Authentication failed. Check your token."
+            }
+        
+        response.raise_for_status()
+        entries = response.json()
+        
+        if not entries or len(entries) == 0:
+            return {
+                "success": False,
+                "error": "No glucose entries found"
+            }
+        
+        entry = entries[0]
+        sgv = entry.get("sgv")
+        date_ms = entry.get("date")
+        
+        if sgv is None or date_ms is None:
+            return {
+                "success": False,
+                "error": "Invalid entry format from Nightscout"
+            }
+        
+        # Calculate time ago
+        entry_time = datetime.fromtimestamp(date_ms / 1000)
+        now = datetime.now()
+        diff = now - entry_time
+        
+        total_seconds = int(diff.total_seconds())
+        if total_seconds < 60:
+            time_ago = f"{total_seconds} seconds ago"
+        elif total_seconds < 3600:
+            minutes = total_seconds // 60
+            time_ago = f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        elif total_seconds < 86400:
+            hours = total_seconds // 3600
+            time_ago = f"{hours} hour{'s' if hours != 1 else ''} ago"
+        else:
+            days = total_seconds // 86400
+            time_ago = f"{days} day{'s' if days != 1 else ''} ago"
+        
+        return {
+            "success": True,
+            "sgv": sgv,
+            "timestamp": entry_time.isoformat(),
+            "time_ago": time_ago
+        }
+        
+    except requests.exceptions.Timeout:
+        return {
+            "success": False,
+            "error": "Connection timed out. Check your URL."
+        }
+    except requests.exceptions.ConnectionError:
+        return {
+            "success": False,
+            "error": "Could not connect to Nightscout. Check your URL."
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": f"Request failed: {str(e)}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Unexpected error: {str(e)}"
+        }
 
 
 if __name__ == "__main__":
-
     result = get_nightscout_entries(
         from_date="2026-01-29T00:00:00",
         to_date="2026-01-30T00:00:00",
         count=10
     )
-    print(result)    
+    print(result)
     print(f"Fetched {len(result) if result else 0} entries")
-
-
-

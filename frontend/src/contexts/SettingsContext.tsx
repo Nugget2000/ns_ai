@@ -26,7 +26,8 @@ interface SettingsContextType {
 const defaultSettings: UserSettings = {
     locale: 'en-US',
     timezone: 'UTC',
-    glucose_unit: 'mg/dL'
+    glucose_unit: 'mg/dL',
+    nightscout_url: undefined
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

@@ -20,6 +20,7 @@ class UserSettings(BaseModel):
     locale: str = "en-US"  # e.g., "sv-SE", "en-US"
     timezone: str = "UTC"  # e.g., "Europe/Stockholm"
     glucose_unit: GlucoseUnit = GlucoseUnit.MGDL
+    nightscout_url: Optional[str] = None  # Full URL with token, e.g., "https://site.example.com?token=xxx"
 
 
 class UserSettingsUpdate(BaseModel):
@@ -27,6 +28,7 @@ class UserSettingsUpdate(BaseModel):
     locale: Optional[str] = None
     timezone: Optional[str] = None
     glucose_unit: Optional[GlucoseUnit] = None
+    nightscout_url: Optional[str] = None
 
 
 class UserBase(BaseModel):

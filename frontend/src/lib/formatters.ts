@@ -23,12 +23,14 @@ export interface UserSettings {
     locale: string;
     timezone: string;
     glucose_unit: GlucoseUnit;
+    nightscout_url?: string;
 }
 
 export interface UserSettingsUpdate {
     locale?: string;
     timezone?: string;
     glucose_unit?: GlucoseUnit;
+    nightscout_url?: string;
 }
 
 export const getUserSettings = async (): Promise<UserSettings> => {
@@ -142,4 +144,30 @@ export const formatGlucose = (
     const decimals = targetUnit === 'mmol/L' ? 1 : 0;
 
     return formatNumber(displayValue, locale, decimals);
+};
+
+
+// ==================== Nightscout Connection ====================
+
+export interface NightscoutTestResponse {
+    success: boolean;
+    sgv?: number;
+    timestamp?: string;
+    time_ago?: string;
+    error?: string;
+}
+
+export const testNightscoutConnection = async (url: string): Promise<NightscoutTestResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/nightscout/test`, {
+        method: 'POST',
+        headers: {
+            ...headers as Record<string, string>,
+        },
+        body: JSON.stringify({ url })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to test Nightscout connection');
+    }
+    return await response.json();
 };

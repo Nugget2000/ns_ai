@@ -41,6 +41,8 @@ from .api.users import router as users_router
 app.include_router(users_router, prefix="/users", tags=["users"])
 from .api.admin import router as admin_router
 app.include_router(admin_router, tags=["admin"])
+from .api.nightscout import router as nightscout_router
+app.include_router(nightscout_router, prefix="/nightscout", tags=["nightscout"])
 
 import traceback
 from .services.activity_logging_service import activity_logging

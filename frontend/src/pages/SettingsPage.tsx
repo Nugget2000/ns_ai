@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings, type GlucoseUnit } from '../contexts/SettingsContext';
-import { Settings, Globe, Clock, Droplet, Save, Check } from 'lucide-react';
+import { Settings, Globe, Clock, Droplet, Save, Check, Link, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { testNightscoutConnection, type NightscoutTestResponse } from '../lib/formatters';
 import './SettingsPage.css';
 
 // Common locales with their display names
@@ -41,14 +42,19 @@ const GLUCOSE_UNITS: { value: GlucoseUnit; label: string; description: string }[
 ];
 
 const SettingsPage: React.FC = () => {
-    const { settings, updateSettings, loading } = useSettings();
+    const { settings, updateSettings, loading, formatGlucose } = useSettings();
 
     const [locale, setLocale] = useState(settings.locale);
     const [timezone, setTimezone] = useState(settings.timezone);
     const [glucoseUnit, setGlucoseUnit] = useState<GlucoseUnit>(settings.glucose_unit);
+    const [nightscoutUrl, setNightscoutUrl] = useState(settings.nightscout_url || '');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Nightscout test state
+    const [testingNightscout, setTestingNightscout] = useState(false);
+    const [nightscoutTestResult, setNightscoutTestResult] = useState<NightscoutTestResponse | null>(null);
 
     // Update local state when settings load
     useEffect(() => {
@@ -56,13 +62,15 @@ const SettingsPage: React.FC = () => {
             setLocale(settings.locale);
             setTimezone(settings.timezone);
             setGlucoseUnit(settings.glucose_unit);
+            setNightscoutUrl(settings.nightscout_url || '');
         }
     }, [settings, loading]);
 
     const hasChanges =
         locale !== settings.locale ||
         timezone !== settings.timezone ||
-        glucoseUnit !== settings.glucose_unit;
+        glucoseUnit !== settings.glucose_unit ||
+        nightscoutUrl !== (settings.nightscout_url || '');
 
     const handleSave = async () => {
         setSaving(true);
@@ -71,7 +79,8 @@ const SettingsPage: React.FC = () => {
             await updateSettings({
                 locale,
                 timezone,
-                glucose_unit: glucoseUnit
+                glucose_unit: glucoseUnit,
+                nightscout_url: nightscoutUrl || undefined
             });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
@@ -195,6 +204,85 @@ const SettingsPage: React.FC = () => {
                                     })}
                                 </span>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* Nightscout Connection Section */}
+                    <section className="settings-section">
+                        <div className="section-header">
+                            <Link size={20} />
+                            <h2>Nightscout Connection</h2>
+                        </div>
+                        <p className="section-description">
+                            Connect your Nightscout site to fetch blood glucose data.
+                        </p>
+
+                        <div className="setting-field">
+                            <label htmlFor="nightscout-url">Nightscout URL with Token</label>
+                            <input
+                                type="text"
+                                id="nightscout-url"
+                                value={nightscoutUrl}
+                                onChange={(e) => {
+                                    setNightscoutUrl(e.target.value);
+                                    setNightscoutTestResult(null);
+                                }}
+                                placeholder="https://yoursite.example.com?token=your-api-token"
+                                className="nightscout-url-input"
+                            />
+                            <span className="field-hint">
+                                Include your API token in the URL (e.g., ?token=your-token)
+                            </span>
+                        </div>
+
+                        <div className="nightscout-test-container">
+                            <button
+                                className={`test-button ${testingNightscout ? 'testing' : ''}`}
+                                onClick={async () => {
+                                    if (!nightscoutUrl) {
+                                        setNightscoutTestResult({ success: false, error: 'Please enter a Nightscout URL' });
+                                        return;
+                                    }
+                                    setTestingNightscout(true);
+                                    setNightscoutTestResult(null);
+                                    try {
+                                        const result = await testNightscoutConnection(nightscoutUrl);
+                                        setNightscoutTestResult(result);
+                                    } catch (err) {
+                                        setNightscoutTestResult({ success: false, error: 'Failed to test connection' });
+                                    } finally {
+                                        setTestingNightscout(false);
+                                    }
+                                }}
+                                disabled={testingNightscout || !nightscoutUrl}
+                            >
+                                {testingNightscout ? (
+                                    <>
+                                        <Loader2 size={16} className="spinning" />
+                                        Testing...
+                                    </>
+                                ) : (
+                                    'Test Connection'
+                                )}
+                            </button>
+
+                            {nightscoutTestResult && (
+                                <div className={`test-result ${nightscoutTestResult.success ? 'success' : 'error'}`}>
+                                    {nightscoutTestResult.success ? (
+                                        <>
+                                            <CheckCircle size={18} />
+                                            <span>
+                                                {formatGlucose(nightscoutTestResult.sgv)} {glucoseUnit} — {nightscoutTestResult.time_ago}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <XCircle size={18} />
+                                            <span>{nightscoutTestResult.error}</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </section>
 
