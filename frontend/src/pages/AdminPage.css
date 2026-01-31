@@ -1,4 +1,3 @@
-
 .admin-container {
     background-color: var(--bg-color);
     min-height: 100vh;
@@ -10,6 +9,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .admin-title {
@@ -17,6 +18,32 @@
     font-weight: 700;
     color: var(--secondary-color);
     margin: 0;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-color: transparent;
+    color: white;
 }
 
 .table-container {
@@ -64,17 +91,17 @@
 }
 
 .role-badge.admin {
-    background-color: rgba(192, 132, 252, 0.2); /* accent-color with opacity */
+    background-color: rgba(192, 132, 252, 0.2);
     color: #e9d5ff;
 }
 
 .role-badge.user {
-    background-color: rgba(56, 189, 248, 0.2); /* secondary-color with opacity */
+    background-color: rgba(56, 189, 248, 0.2);
     color: #bae6fd;
 }
 
 .role-badge.pending {
-    background-color: rgba(251, 191, 36, 0.2); /* yellow */
+    background-color: rgba(251, 191, 36, 0.2);
     color: #fde68a;
 }
 
@@ -128,4 +155,119 @@
     opacity: 0.3;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Activity Log Table Styles */
+.activity-table .user-row {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.activity-table .user-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.activity-table .clickable {
+    cursor: pointer;
+}
+
+.activity-table .session-row {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.activity-table .session-row:hover {
+    background: rgba(79, 70, 229, 0.1);
+}
+
+.activity-table .session-row.has-errors {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.activity-table .session-row.has-errors:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.user-email {
+    font-weight: 500;
+    margin-right: 0.75rem;
+}
+
+.stat-cell {
+    white-space: nowrap;
+}
+
+.stat-inline {
+    display: inline-block;
+    margin-right: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+}
+
+.stat-inline.error-stat {
+    color: #ef4444;
+}
+
+.indent-cell {
+    padding-left: 2rem !important;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.loading-cell,
+.empty-cell {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 1rem !important;
+}
+
+.expand-icon {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+}
+
+.btn-view {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    background: rgba(79, 70, 229, 0.2);
+    border: 1px solid rgba(79, 70, 229, 0.4);
+    color: #a5b4fc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-view:hover {
+    background: rgba(79, 70, 229, 0.4);
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.loading-spinner {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stat-inline {
+        display: block;
+        margin-bottom: 0.25rem;
+    }
 }

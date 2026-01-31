@@ -126,3 +126,65 @@ export const getFileStoreInfo = async (): Promise<FileStoreInfoResponse[]> => {
         throw new Error('Unable to fetch file store info');
     }
 };
+
+// Activity Logging Types
+export interface Session {
+    session_id: string;
+    uid: string;
+    email?: string;
+    started_at: string;
+    last_activity: string;
+    event_count: number;
+    error_count: number;
+}
+
+export interface SessionEvent {
+    event_id: string;
+    session_id: string;
+    event_type: 'login' | 'chat_message' | 'chat_response' | 'error' | 'page_view';
+    timestamp: string;
+    data: Record<string, unknown>;
+    error_info?: {
+        error_type: string;
+        message: string;
+    };
+    stacktrace?: string;
+}
+
+export interface UserWithActivity {
+    uid: string;
+    email?: string;
+    total_sessions: number;
+    total_events: number;
+    total_errors: number;
+    last_activity?: string;
+}
+
+// Activity Logging API Functions
+export const getUsersWithActivity = async (): Promise<UserWithActivity[]> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/admin/users-with-activity`, { headers });
+    if (!response.ok) {
+        throw new Error('Failed to fetch users with activity');
+    }
+    return await response.json();
+};
+
+export const getUserSessions = async (uid: string): Promise<Session[]> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/admin/users/${uid}/sessions`, { headers });
+    if (!response.ok) {
+        throw new Error('Failed to fetch user sessions');
+    }
+    return await response.json();
+};
+
+export const getSessionEvents = async (sessionId: string): Promise<SessionEvent[]> => {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/admin/sessions/${sessionId}/events`, { headers });
+    if (!response.ok) {
+        throw new Error('Failed to fetch session events');
+    }
+    return await response.json();
+};
+

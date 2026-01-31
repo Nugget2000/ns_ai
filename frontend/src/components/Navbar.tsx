@@ -6,7 +6,7 @@ import emanuel from '../assets/emanuel.png';
 import hanna from '../assets/hanna.png';
 import cora from '../assets/cora.png';
 import benny from '../assets/benny.png';
-import { Menu, X, Home, LogOut, Shield } from 'lucide-react';
+import { Menu, X, Home, LogOut, Shield, Settings } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -49,6 +49,7 @@ const Navbar: React.FC = () => {
         { to: '/', label: 'Home', icon: <Home size={18} />, image: null },
         { to: '/emanuel', label: 'Emanuel', icon: null, image: emanuel },
         { to: '/insights', label: 'Insights', icon: null, image: 'group', images: [hanna, cora, benny] },
+        { to: '/settings', label: 'Settings', icon: <Settings size={18} />, image: null },
     ];
 
     if (userProfile?.role === 'admin') {

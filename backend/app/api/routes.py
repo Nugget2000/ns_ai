@@ -1,12 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from ..models.schemas import CountResponse, HealthResponse, VersionResponse, FileStoreInfoResponse
 from ..services.firebase import increment_visitor_count
 from ..services.emanuel import generate_emanuel_response, get_file_store_info
+from ..services.activity_logging_service import activity_logging
 from ..core.config import settings
 from ..core.auth import verify_token, get_active_user
 from fastapi import Depends
+import time
+import json
+import traceback
 
 
 router = APIRouter()
@@ -31,9 +35,76 @@ class ChatRequest(BaseModel):
     message: str
 
 
+async def logged_emanuel_response(message: str, session_id: str):
+    """
+    Wrapper generator that logs chat message and response events.
+    """
+    start_time = time.time()
+    full_response = ""
+    input_tokens = None
+    output_tokens = None
+    
+    # Log the user's chat message
+    activity_logging.log_chat_message(session_id, message)
+    
+    try:
+        async for chunk in generate_emanuel_response(message):
+            yield chunk
+            
+            # Parse the chunk to capture response and metrics
+            try:
+                data = json.loads(chunk.strip())
+                if data.get("type") == "content":
+                    full_response += data.get("text", "")
+                elif data.get("type") == "usage":
+                    input_tokens = data.get("input_tokens")
+                    output_tokens = data.get("output_tokens")
+                elif data.get("type") == "error":
+                    # Log error event
+                    activity_logging.log_error(
+                        session_id=session_id,
+                        error_type="chat_error",
+                        message=data.get("text", "Unknown error"),
+                        endpoint="/emanuel"
+                    )
+            except json.JSONDecodeError:
+                pass
+        
+        # Log the complete response at the end
+        duration_ms = int((time.time() - start_time) * 1000)
+        activity_logging.log_chat_response(
+            session_id=session_id,
+            response=full_response,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            duration_ms=duration_ms
+        )
+    except Exception as e:
+        # Log error with stacktrace
+        activity_logging.log_error(
+            session_id=session_id,
+            error_type=type(e).__name__,
+            message=str(e),
+            endpoint="/emanuel",
+            stacktrace=traceback.format_exc()
+        )
+        raise
+
+
 @router.post("/emanuel")
-async def chat_emanuel(request: ChatRequest, user: dict = Depends(get_active_user)):
-    return StreamingResponse(generate_emanuel_response(request.message), media_type="application/x-ndjson")
+async def chat_emanuel(chat_request: ChatRequest, request: Request, user: dict = Depends(get_active_user)):
+    session_id = getattr(request.state, 'session_id', None)
+    if session_id:
+        return StreamingResponse(
+            logged_emanuel_response(chat_request.message, session_id),
+            media_type="application/x-ndjson"
+        )
+    else:
+        # Fallback if no session (shouldn't happen normally)
+        return StreamingResponse(
+            generate_emanuel_response(chat_request.message),
+            media_type="application/x-ndjson"
+        )
 
 from typing import List
 

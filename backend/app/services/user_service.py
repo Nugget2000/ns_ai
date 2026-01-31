@@ -5,7 +5,10 @@ from typing import Optional, List
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
-from ..models.schemas import UserCreate, UserUpdate, UserResponse, UserRole
+from ..models.schemas import (
+    UserCreate, UserUpdate, UserResponse, UserRole,
+    UserSettings, UserSettingsUpdate
+)
 
 db = firestore.client()
 COLLECTION_NAME = "users"
@@ -65,3 +68,36 @@ class UserService:
         else:
             new_user = UserCreate(uid=uid, email=email, role=UserRole.PENDING)
             return UserService.create_user(new_user)
+
+    @staticmethod
+    def get_user_settings(uid: str) -> UserSettings:
+        """Get user settings, returning defaults if not set."""
+        doc_ref = db.collection(COLLECTION_NAME).document(uid)
+        doc = doc_ref.get()
+        if doc.exists:
+            data = doc.to_dict()
+            settings_data = data.get("settings", {})
+            if settings_data:
+                return UserSettings(**settings_data)
+        return UserSettings()  # Return defaults
+
+    @staticmethod
+    def update_user_settings(uid: str, updates: UserSettingsUpdate) -> Optional[UserSettings]:
+        """Update user settings, merging with existing values."""
+        doc_ref = db.collection(COLLECTION_NAME).document(uid)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return None
+        
+        # Get current settings or defaults
+        data = doc.to_dict()
+        current_settings = data.get("settings", {})
+        
+        # Merge updates
+        update_data = updates.dict(exclude_unset=True)
+        merged_settings = {**current_settings, **update_data}
+        
+        # Save to Firestore
+        doc_ref.update({"settings": merged_settings})
+        
+        return UserSettings(**merged_settings)
