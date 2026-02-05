@@ -46,12 +46,17 @@ const EmanuelPage: React.FC = () => {
         fetchFileStoreInfo();
     }, []);
 
-    const sendMessage = async () => {
-        if (!input.trim()) return;
+    const sendMessage = async (messageText?: string | unknown) => {
+        const textToSend = typeof messageText === 'string' ? messageText : input;
+        if (!textToSend.trim()) return;
 
-        const userMessage = { role: 'user' as const, content: input };
+        const userMessage = { role: 'user' as const, content: textToSend };
         setMessages(prev => [...prev, userMessage]);
-        setInput('');
+
+        if (typeof messageText !== 'string') {
+            setInput('');
+        }
+
         setIsLoading(true);
         setMetadata(null); // Reset metadata for new request
 
@@ -138,7 +143,7 @@ const EmanuelPage: React.FC = () => {
 
             </div>
 
-            <div className="chat-window" style={{
+            <div className="chat-window" role="log" aria-live="polite" style={{
                 flex: 1,
                 overflowY: 'auto',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -155,9 +160,23 @@ const EmanuelPage: React.FC = () => {
                     <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)', marginTop: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
                         <img src={emanuelImage} alt="Emanuel" style={{ width: '100px', height: '100px', borderRadius: '50%', opacity: 0.6, filter: 'grayscale(50%)' }} />
                         <p style={{ fontSize: '1.2rem' }}>Hello! I'm Emanuel. How can I help you today?</p>
-                        You can ask questions like <br />
-                        Is it safe to update to IOS 26.2?
-                        <br />Why is my loop app "expired" and how can I fix it?
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '400px' }}>
+                            <p style={{ marginBottom: '8px' }}>You can ask questions like:</p>
+                            {[
+                                "Is it safe to update to IOS 26.2?",
+                                "Why is my loop app \"expired\"?",
+                                "How do I set up Nightscout?"
+                            ].map((suggestion, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => sendMessage(suggestion)}
+                                    className="suggestion-button"
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -197,10 +216,15 @@ const EmanuelPage: React.FC = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         code: ({ node, ...props }) => {
                                             const match = /language-(\w+)/.exec(props.className || '')
                                             return match ? (
@@ -233,6 +257,8 @@ const EmanuelPage: React.FC = () => {
                 boxShadow: '0 0 30px rgba(0, 0, 0, 0.2), 0 0 15px rgba(129, 140, 248, 0.1)'
             }}>
                 <textarea
+                    aria-label="Message to Emanuel"
+                    autoFocus
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
