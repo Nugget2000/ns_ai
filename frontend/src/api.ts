@@ -50,7 +50,7 @@ export const getHealth = async (): Promise<HealthResponse> => {
             throw new Error('Health check failed');
         }
         return await response.json();
-    } catch (error) {
+    } catch {
         throw new Error('Unable to connect to backend');
     }
 };
@@ -63,7 +63,7 @@ export const getVersion = async (): Promise<VersionResponse> => {
             throw new Error('Version check failed');
         }
         return await response.json();
-    } catch (error) {
+    } catch {
         throw new Error('Unable to fetch version');
     }
 };
@@ -76,7 +76,7 @@ export const getPageLoad = async (): Promise<PageLoadResponse> => {
             throw new Error('Page load tracking failed');
         }
         return await response.json();
-    } catch (error) {
+    } catch {
         throw new Error('Unable to fetch page load count');
     }
 };
@@ -122,7 +122,7 @@ export const getFileStoreInfo = async (): Promise<FileStoreInfoResponse[]> => {
             throw new Error('Failed to fetch file store info');
         }
         return await response.json();
-    } catch (error) {
+    } catch {
         throw new Error('Unable to fetch file store info');
     }
 };

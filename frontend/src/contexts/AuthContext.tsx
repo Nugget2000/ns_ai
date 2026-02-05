@@ -78,6 +78,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 };
 
+// Export the hook as a named export
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -85,3 +87,6 @@ export const useAuth = (): AuthContextType => {
     }
     return context;
 };
+
+// Default export of the component
+export default AuthProvider;
