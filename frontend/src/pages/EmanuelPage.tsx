@@ -197,10 +197,15 @@ const EmanuelPage: React.FC = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         code: ({ node, ...props }) => {
                                             const match = /language-(\w+)/.exec(props.className || '')
                                             return match ? (
