@@ -437,73 +437,75 @@ class ScraperService:
         except Exception as e:
             logger.error(f"Failed to save to Firestore: {e}")
 
-    def _log_file_store_contents(self) -> None:
-        """Log all available file search stores and their contents."""
+    def log_current_gemini_state(self, stage="CURRENT"):
+        """
+        Logs all existing file search stores and the files within them.
+        """
         if not self.gemini_client:
-            logger.warning("Gemini client not initialized. Cannot list file store contents.")
+            logger.info(f"--- Gemini client not initialized. Cannot log {stage} state. ---")
             return
 
+        logger.info(f"--- Gemini Knowledge State: {stage} ---")
         try:
-            logger.info("=" * 50)
-            logger.info("AVAILABLE FILE STORES (BEFORE SCRAPING)")
-            logger.info("=" * 50)
-
-            file_search_stores = self.gemini_client.file_search_stores.list()
-            store_count = 0
-
-            for store in file_search_stores:
-                store_count += 1
-                size_mb = store.size_bytes / (1024 * 1024) if store.size_bytes else 0.0
-                logger.info(f"Store: {store.display_name}")
-                logger.info(f"  - Name: {store.name}")
-                logger.info(f"  - Size: {size_mb:.2f} MB ({store.size_bytes or 0} bytes)")
-                logger.info(f"  - Created: {store.create_time}")
-                logger.info(f"  - Updated: {store.update_time}")
-
-            if store_count == 0:
+            stores = list(self.gemini_client.file_search_stores.list())
+            if not stores:
                 logger.info("No file search stores found.")
+                return
 
-            logger.info("=" * 50)
-
+            for store in stores:
+                logger.info(f"Store: {store.display_name} | Name: {store.name} | Size: {store.size_bytes} bytes | Created: {store.create_time}")
+                try:
+                    # Attempt to list files in the store
+                    files = list(self.gemini_client.file_search_stores.files.list(file_search_store_name=store.name))
+                    if files:
+                        for f in files:
+                            logger.info(f"  -> File: {f.display_name} | Name: {f.name} | Size: {f.size_bytes if hasattr(f, 'size_bytes') else 'N/A'}")
+                    else:
+                        logger.info("  -> (No files found in this store)")
+                except Exception as file_e:
+                    logger.debug(f"Could not list files for store {store.name}: {file_e}")
         except Exception as e:
-            logger.error(f"Error listing file store contents: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
+            logger.error(f"Error logging Gemini state: {e}")
+        logger.info("-" * 40)
 
-    def update_gemini_store(self) -> None:
-        """Upload compiled prompt to Gemini file search store."""
+    def update_gemini_store(self):
+        """
+        Uploads the compiled prompt file to Gemini's file search store.
+        """
         if not self.gemini_client:
             logger.error("Gemini client not initialized. Cannot update file store.")
             return
 
         store_name = 'emanuel_scrape_store'
-        logger.info(f"Updating Gemini file search store: {store_name}")
-
+        
         try:
+            # log state before
+            self.log_current_gemini_state("BEFORE Update")
+
+            logger.info(f"Checking for Gemini file search store: {store_name}")
+            
             # Find existing store
-            file_search_stores = self.gemini_client.file_search_stores.list()
             file_search_store = None
-            for store in file_search_stores:
+            # Need to re-fetch if list becomes stale, but stores_before was used here. 
+            # Let's just list again to be safe and fresh.
+            stores_now = list(self.gemini_client.file_search_stores.list())
+            for store in stores_now:
                 if store.display_name == store_name:
                     file_search_store = store
                     break
+            
+            if not file_search_store:
+                logger.info(f"Creating new file search store: {store_name}")
+                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
+            else:
+                logger.info(f"Found existing store: {file_search_store.name}")
+                logger.info(f"Deleting old store {file_search_store.name} to ensure fresh data.")
+                self.gemini_client.file_search_stores.delete(name=file_search_store.name, config={"force": True})
+                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
 
-            # Delete existing store (with force=True) to delete store and all its files
-            if file_search_store:
-                logger.info(f"Deleting old store to ensure fresh data")
-                self.gemini_client.file_search_stores.delete(
-                    name=file_search_store.name,
-                    config={"force": True}
-                )
-
-            # Create new store
-            logger.info(f"Creating new file search store: {store_name}")
-            file_search_store = self.gemini_client.file_search_stores.create(
-                config={'display_name': store_name}
-            )
-
-            # Upload prompt file
             logger.info(f"Uploading {self.prompt_file} to Gemini...")
+            
+            # Note: The 'file' parameter expects a path or file-like object
             operation = self.gemini_client.file_search_stores.upload_to_file_search_store(
                 file=self.prompt_file,
                 file_search_store_name=file_search_store.name,
@@ -512,12 +514,15 @@ class ScraperService:
 
             # Wait for upload to complete
             while not operation.done:
-                logger.info("Uploading file to Gemini...")
+                logger.info("Uploading file to Gemini... (waiting)")
                 time.sleep(2)
                 operation = self.gemini_client.operations.get(operation)
 
             logger.info("Gemini file search store updated successfully.")
 
+            # log state after
+            self.log_current_gemini_state("AFTER Update")
+            
         except Exception as e:
             logger.error(f"Error updating Gemini file search store: {e}")
             import traceback
@@ -565,7 +570,10 @@ class ScraperService:
         self._log_file_store_contents()
 
         start_time = time.time()
-
+        
+        # Log state before doing anything
+        self.log_current_gemini_state("BEFORE SCRAPE")
+        
         sites = [
             "https://www.loopnlearn.org/",
             "https://loopkit.github.io/loopdocs/",
