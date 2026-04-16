@@ -566,11 +566,8 @@ class ScraperService:
         
         Returns a summary of the operation.
         """
-        # Log all available files in the file store before starting
-        self._log_file_store_contents()
-
         start_time = time.time()
-        
+
         # Log state before doing anything
         self.log_current_gemini_state("BEFORE SCRAPE")
         
