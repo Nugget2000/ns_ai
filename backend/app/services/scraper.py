@@ -515,7 +515,7 @@ class ScraperService:
             operation = self.gemini_client.file_search_stores.upload_to_file_search_store(
                 file=self.prompt_file,
                 file_search_store_name=file_search_store.name,
-                config={'display_name': 'emanuel_prompt'}
+                config={'display_name': 'emanuel_prompt', 'mime_type': 'text/plain'}
             )
 
             # Wait for upload to complete
