@@ -42,11 +42,8 @@ async def increment_visitor_count() -> int:
         count = increment_counter(transaction)
         return count
     except Exception as e:
-
-
-        logging.error(f"Error incrementing visitor count: {e}")
-        logging.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error incrementing visitor count: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 def save_emanuel_prompt(prompt_text: str):
     """
