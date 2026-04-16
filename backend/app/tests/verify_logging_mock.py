@@ -1,7 +1,6 @@
 
 import sys
 import os
-import unittest
 from unittest.mock import MagicMock, patch
 
 # Add backend directory to sys.path so we can import app modules
@@ -24,7 +23,7 @@ with patch('app.services.firebase.firestore.client') as mock_client:
     # Note: We need to import it inside the patch context or ensuring mocks are active
     # Because we mocked sys.modules, normal import should work but we need to rely on the patched client
     
-    from app.services.firebase import log_login_event, db
+    from app.services.firebase import log_login_event
 
     # Overwrite the db instance in the module with our mock if needed, 
     # but since 'db = firestore.client()' is at module level, it ran on import.

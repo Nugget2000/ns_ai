@@ -1,8 +1,6 @@
-import os
 import hashlib
 import firebase_admin
 from firebase_admin import auth
-from functools import lru_cache
 from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status, Request

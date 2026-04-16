@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -6,7 +8,7 @@ from ..services.firebase import increment_visitor_count
 from ..services.emanuel import generate_emanuel_response, get_file_store_info
 from ..services.activity_logging_service import activity_logging
 from ..core.config import settings
-from ..core.auth import verify_token, get_active_user
+from ..core.auth import get_active_user
 from fastapi import Depends
 import time
 import json
@@ -105,8 +107,6 @@ async def chat_emanuel(chat_request: ChatRequest, request: Request, user: dict =
             generate_emanuel_response(chat_request.message),
             media_type="application/x-ndjson"
         )
-
-from typing import List
 
 @router.get("/emanuel/file-store-info", response_model=List[FileStoreInfoResponse])
 async def get_file_store_info_endpoint(user: dict = Depends(get_active_user)):

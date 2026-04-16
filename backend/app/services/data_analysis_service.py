@@ -9,14 +9,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional, List, Literal
 import statistics
-import math
-
-# Conversion factor: mg/dL to mmol/L
-MGDL_TO_MMOL = 18.0
 
 from ..models.entry import Entry
 from ..models.treatment import Treatment
 from .nightscout_service import get_nightscout_entries, get_nightscout_treatments
+
+# Conversion factor: mg/dL to mmol/L
+MGDL_TO_MMOL = 18.0
 
 
 @dataclass
@@ -328,17 +327,17 @@ def print_treatment_insights(insights: TreatmentInsights) -> None:
     """Helper function to print treatment insights."""
     print("\n=== Treatment Insights ===")
     print(f"Total Treatments: {insights.total_treatment_count}")
-    print(f"\n-- Carbs --")
+    print("\n-- Carbs --")
     print(f"Total Carbs: {insights.total_carbs}g")
     print(f"Carb Corrections: {insights.carb_correction_count}")
-    print(f"\n-- Insulin --")
+    print("\n-- Insulin --")
     print(f"Total Insulin: {insights.total_insulin}U")
     print(f"Correction Boluses: {insights.correction_bolus_count}")
-    print(f"\n-- Pump Events --")
+    print("\n-- Pump Events --")
     print(f"Site Changes: {insights.site_change_count}")
     print(f"Insulin/Reservoir Changes: {insights.insulin_change_count}")
     print(f"Battery Changes: {insights.pump_battery_change_count}")
-    print(f"\n-- Basal/Overrides --")
+    print("\n-- Basal/Overrides --")
     print(f"Temp Basal Events: {insights.temp_basal_count}")
     print(f"Temporary Overrides: {insights.temporary_override_count}")
 

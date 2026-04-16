@@ -1,12 +1,8 @@
-import os
-import json
-import base64
 import logging
 import traceback
 import firebase_admin
-from datetime import datetime
 from fastapi import HTTPException
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 
 
 # Initialize Firebase

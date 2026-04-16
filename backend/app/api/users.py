@@ -4,8 +4,7 @@ from typing import List
 
 from ..services.user_service import UserService
 from ..models.schemas import (
-    UserResponse, UserUpdate, UserRole,
-    UserSettings, UserSettingsUpdate
+    UserResponse, UserUpdate, UserSettings, UserSettingsUpdate
 )
 from ..core.auth import get_admin_user, get_current_user
 

@@ -12,7 +12,7 @@ import logging
 import re
 import sys
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
 
 from playwright.async_api import async_playwright, Page, Browser, BrowserContext

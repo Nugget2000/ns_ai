@@ -1,4 +1,3 @@
-import os
 import requests
 from typing import Optional, List
 from pydantic import ValidationError
@@ -157,7 +156,7 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
     """
     try:
         # Parse the URL to extract base URL and token
-        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        from urllib.parse import urlparse, parse_qs, urlunparse
         
         parsed = urlparse(nightscout_url)
         query_params = parse_qs(parsed.query)
