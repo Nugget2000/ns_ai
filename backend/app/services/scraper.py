@@ -11,6 +11,7 @@ import time
 import logging
 import re
 import json
+import unicodedata
 from typing import Optional
 from urllib.parse import urlparse
 from dataclasses import dataclass, field
@@ -57,6 +58,29 @@ class ScrapeConfig:
     )
     excluded_extensions: tuple = ('.pdf', '.zip', '.exe', '.dmg', '.pkg', '.tar.gz')
     excluded_patterns: tuple = ('#', 'mailto:', 'tel:', 'javascript:')
+
+
+_UNICODE_REPLACEMENTS = str.maketrans({
+    "\u00a0": " ",   # non-breaking space
+    "\u200b": "",    # zero-width space
+    "\u200c": "",    # zero-width non-joiner
+    "\u200d": "",    # zero-width joiner
+    "\ufeff": "",    # BOM / zero-width no-break space
+    "\u2018": "'",   # left single quotation mark
+    "\u2019": "'",   # right single quotation mark
+    "\u201c": '"',   # left double quotation mark
+    "\u201d": '"',   # right double quotation mark
+    "\u2013": "-",   # en dash
+    "\u2014": "--",  # em dash
+    "\u2026": "...", # ellipsis
+    "\u00ad": "",    # soft hyphen
+})
+
+
+def _clean_unicode(text: str) -> str:
+    """Normalize Unicode and replace ambiguous characters with ASCII equivalents."""
+    text = unicodedata.normalize("NFKC", text)
+    return text.translate(_UNICODE_REPLACEMENTS)
 
 
 def load_env() -> bool:
@@ -356,11 +380,11 @@ class ScraperService:
                             break
 
                     content_lines = lines[content_start:]
-                    content = "\n".join(content_lines).strip()
+                    content = _clean_unicode("\n".join(content_lines).strip())
 
                     # Use first non-empty content line as title
                     title = next((l for l in content_lines if l.strip()), url)
-                    title = title.strip()[:200]  # cap length
+                    title = _clean_unicode(title.strip())[:200]  # cap length
 
                     # Derive tags from domain
                     domain = urlparse(url).netloc if url else ""
@@ -490,41 +514,30 @@ class ScraperService:
 
             logger.info(f"Checking for Gemini file search store: {store_name}")
             
-            # Find existing store
-            file_search_store = None
-            # Need to re-fetch if list becomes stale, but stores_before was used here. 
-            # Let's just list again to be safe and fresh.
-            stores_now = list(self.gemini_client.file_search_stores.list())
-            for store in stores_now:
-                if store.display_name == store_name:
-                    file_search_store = store
-                    break
-            
-            if not file_search_store:
-                logger.info(f"Creating new file search store: {store_name}")
-                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
-            else:
-                logger.info(f"Found existing store: {file_search_store.name}")
-                logger.info(f"Deleting old store {file_search_store.name} to ensure fresh data.")
-                self.gemini_client.file_search_stores.delete(name=file_search_store.name, config={"force": True})
-                file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
+            # Delete all existing stores with this name before creating a fresh one
+            existing = [s for s in self.gemini_client.file_search_stores.list() if s.display_name == store_name]
+            if existing:
+                logger.info(f"Deleting {len(existing)} existing store(s) named '{store_name}'...")
+                for store in existing:
+                    self.gemini_client.file_search_stores.delete(name=store.name, config={"force": True})
+                    logger.info(f"  Deleted {store.name}")
+
+            logger.info(f"Creating new file search store: {store_name}")
+            file_search_store = self.gemini_client.file_search_stores.create(config={'display_name': store_name})
 
             logger.info(f"Uploading {self.prompt_file} to Gemini...")
-            
-            # Note: The 'file' parameter expects a path or file-like object
+
             operation = self.gemini_client.file_search_stores.upload_to_file_search_store(
                 file=self.prompt_file,
                 file_search_store_name=file_search_store.name,
                 config={'display_name': 'emanuel_prompt', 'mime_type': 'text/plain'}
             )
 
-            # Wait for upload to complete
-            while not operation.done:
-                logger.info("Uploading file to Gemini... (waiting)")
-                time.sleep(2)
-                operation = self.gemini_client.operations.get(operation)
-
-            logger.info("Gemini file search store updated successfully.")
+            # Gemini indexes the file asynchronously — done=None until indexing completes
+            # which can take several minutes. We don't block here; the store will be ready
+            # once Gemini finishes processing in the background.
+            logger.info(f"Upload submitted. Gemini is indexing asynchronously.")
+            logger.info(f"Operation: {operation.name}")
 
             # log state after
             self.log_current_gemini_state("AFTER Update")
@@ -566,34 +579,41 @@ class ScraperService:
 
         return summary
 
-    def run(self) -> dict:
+    def run(self, skip_scrape: bool = False, compile_only: bool = False) -> dict:
         """
         Main entry point - run the scraping and compilation workflow.
-        
+
+        Args:
+            skip_scrape:   Skip scraping; recompile JSONL from cache and upload.
+            compile_only:  Skip scraping and upload; only recompile JSONL from cache.
+
         Returns a summary of the operation.
         """
         start_time = time.time()
+        summary = {"sites_scraped": [], "total_pages": 0, "total_chars_saved": 0}
 
-        # Log state before doing anything
-        self.log_current_gemini_state("BEFORE SCRAPE")
-        
-        sites = [
-            "https://www.loopnlearn.org/",
-            "https://loopkit.github.io/loopdocs/",
-        ]
-
-        # Run async scraping
-        summary = asyncio.run(self._run_async(sites))
-
-        # Compile cache to JSONL and upload to Gemini
-        summary["records_compiled"] = self.compile_jsonl()
-        self.update_gemini_store()
+        if compile_only:
+            logger.info("Compile-only mode — regenerating JSONL from cache, no upload.")
+            summary["records_compiled"] = self.compile_jsonl()
+        elif skip_scrape:
+            logger.info(f"Skipping scrape — recompiling JSONL and uploading {self.prompt_file}")
+            summary["records_compiled"] = self.compile_jsonl()
+            self.update_gemini_store()
+        else:
+            self.log_current_gemini_state("BEFORE SCRAPE")
+            sites = [
+                "https://www.loopnlearn.org/",
+                "https://loopkit.github.io/loopdocs/",
+            ]
+            summary = asyncio.run(self._run_async(sites))
+            summary["records_compiled"] = self.compile_jsonl()
+            self.update_gemini_store()
 
         end_time = time.time()
         summary["time_taken_seconds"] = round(end_time - start_time, 2)
 
         logger.info(
-            f"Scraping complete: {summary['total_pages']} pages, "
+            f"Done: {summary['total_pages']} pages scraped, "
             f"{summary['total_chars_saved']:,} chars in {summary['time_taken_seconds']}s"
         )
 
@@ -601,18 +621,34 @@ class ScraperService:
 
 
 # Convenience function for sync contexts
-def run_scraper(cache_dir: str = "backend/cache") -> dict:
+def run_scraper(cache_dir: str = "backend/cache", skip_scrape: bool = False, compile_only: bool = False) -> dict:
     """Run the scraper with specified configuration."""
     scraper = ScraperService(cache_dir=cache_dir)
-    return scraper.run()
+    return scraper.run(skip_scrape=skip_scrape, compile_only=compile_only)
 
 
 if __name__ == "__main__":
-    # Detect working directory and adjust paths
+    '''
+    # Bara regenerera JSONL-filen (se om unicode-städningen fungerar)
+    python3 backend/app/services/scraper.py --compile-only
+
+    # Recompile + ladda upp utan att scrapa
+    python3 backend/app/services/scraper.py --skip-scrape
+
+    # Fullt flöde
+    python3 backend/app/services/scraper.py
+    
+    '''
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--skip-scrape", action="store_true", help="Skip scraping; recompile JSONL from cache and upload")
+    parser.add_argument("--compile-only", action="store_true", help="Only recompile JSONL from cache, no upload")
+    args = parser.parse_args()
+
     cwd = os.getcwd()
     cache_dir = "cache" if cwd.endswith("backend") else "backend/cache"
 
-    result = run_scraper(cache_dir=cache_dir)
+    result = run_scraper(cache_dir=cache_dir, skip_scrape=args.skip_scrape, compile_only=args.compile_only)
     print(f"\n{'='*50}")
     print("Scraping Summary:")
     print(f"  Sites: {len(result['sites_scraped'])}")
