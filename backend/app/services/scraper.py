@@ -10,7 +10,7 @@ import asyncio
 import time
 import logging
 import re
-import sys
+import json
 from typing import Optional
 from urllib.parse import urlparse
 from dataclasses import dataclass, field
@@ -61,11 +61,11 @@ class ScrapeConfig:
 
 def load_env() -> bool:
     """Load .env file to ensure GEMINI_API_KEY is available."""
+    # This file lives at backend/app/services/scraper.py — three levels up is the project root
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     env_paths = [
+        os.path.join(project_root, ".env"),
         os.path.join(os.getcwd(), ".env"),
-        os.path.join(os.getcwd(), "backend", ".env"),
-        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"),
-        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "backend", ".env")
     ]
 
     for env_path in env_paths:
@@ -74,12 +74,12 @@ def load_env() -> bool:
                 with open(env_path, "r") as f:
                     for line in f:
                         line = line.strip()
-                        if line and not line.startswith("#") and "=" in line:
-                            if line.startswith("export "):
-                                line = line[7:].strip()
-                            if "=" in line:
-                                key, value = line.split("=", 1)
-                                os.environ[key.strip()] = value.strip().strip('"').strip("'")
+                        if not line or line.startswith("#") or "=" not in line:
+                            continue
+                        if line.startswith("export "):
+                            line = line[7:].strip()
+                        key, value = line.split("=", 1)
+                        os.environ[key.strip()] = value.strip().strip('"').strip("'")
                 logger.info(f"Loaded environment variables from {env_path}")
                 return True
             except Exception as e:
@@ -192,11 +192,10 @@ class ScraperService:
     def __init__(
         self,
         cache_dir: str = "backend/cache",
-        prompt_file: str = "backend/emanuel_prompt.txt",
         config: Optional[ScrapeConfig] = None
     ):
         self.cache_dir = cache_dir
-        self.prompt_file = prompt_file
+        self.prompt_file = os.path.join(cache_dir, "gemini_upload.jsonl")
         self.config = config or ScrapeConfig()
         self.visited_urls: set[str] = set()
         self._semaphore: Optional[asyncio.Semaphore] = None
@@ -323,6 +322,66 @@ class ScraperService:
 
         return len(content)
 
+    def compile_jsonl(self) -> int:
+        """
+        Compile all cached pages into a single JSONL file for Gemini file store upload.
+        Each line is a JSON object with url, title, scrape_date, tags, and content.
+        Returns the number of records written.
+        """
+        out_path = os.path.join(self.cache_dir, "gemini_upload.jsonl")
+        records_written = 0
+
+        with open(out_path, "w", encoding="utf-8") as out_file:
+            for filename in sorted(os.listdir(self.cache_dir)):
+                if not filename.endswith(".txt"):
+                    continue
+
+                filepath = os.path.join(self.cache_dir, filename)
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        raw = f.read()
+
+                    # Parse header written by _save_to_cache
+                    lines = raw.splitlines()
+                    url = ""
+                    scrape_date = ""
+                    content_start = 0
+                    for i, line in enumerate(lines):
+                        if line.startswith("URL: "):
+                            url = line[5:].strip()
+                        elif line.startswith("Extraction Time: "):
+                            scrape_date = line[17:].strip()
+                        elif line.startswith("-" * 20):
+                            content_start = i + 1
+                            break
+
+                    content_lines = lines[content_start:]
+                    content = "\n".join(content_lines).strip()
+
+                    # Use first non-empty content line as title
+                    title = next((l for l in content_lines if l.strip()), url)
+                    title = title.strip()[:200]  # cap length
+
+                    # Derive tags from domain
+                    domain = urlparse(url).netloc if url else ""
+                    tags = [domain] if domain else []
+
+                    record = {
+                        "url": url,
+                        "title": title,
+                        "scrape_date": scrape_date,
+                        "tags": tags,
+                        "content": content,
+                    }
+                    out_file.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    records_written += 1
+
+                except Exception as e:
+                    logger.warning(f"Skipping {filename}: {e}")
+
+        logger.info(f"Compiled {records_written} records to {out_path}")
+        return records_written
+
     async def scrape_site(self, browser: Browser, start_url: str) -> SiteStats:
         """Crawl and scrape an entire site starting from start_url."""
         logger.info(f"Starting scrape for {start_url}")
@@ -383,59 +442,6 @@ class ScraperService:
             await context.close()
 
         return stats
-
-    def compile_prompt(self) -> None:
-        """Compile all cached files into the prompt file and save to Firestore."""
-        logger.info("Compiling prompt file...")
-
-        full_prompt = (
-            "You are Emanuel, an AI assistant for the Nightscout and Loop community.\n"
-            "Explicitly only answer using the information in the following context.\n"
-            "Always answer with clickable links and clear instructions.\n"
-            "If the answer is not in the context, state that you don't know based on the available information.\n\n"
-            "=== CONTEXT START ===\n\n"
-        )
-
-        for filename in sorted(os.listdir(self.cache_dir)):
-            if filename.endswith(".txt"):
-                filepath = os.path.join(self.cache_dir, filename)
-                try:
-                    with open(filepath, "r", encoding="utf-8") as infile:
-                        full_prompt += infile.read()
-                        full_prompt += "\n\n" + "=" * 40 + "\n\n"
-                except Exception as e:
-                    logger.warning(f"Error reading cache file {filename}: {e}")
-
-        full_prompt += "=== CONTEXT END ===\n"
-
-        # Save to file
-        with open(self.prompt_file, "w", encoding="utf-8") as outfile:
-            outfile.write(full_prompt)
-        logger.info(f"Prompt file created at {self.prompt_file} ({len(full_prompt):,} chars)")
-
-        # Save to Firestore
-        self._save_to_firestore(full_prompt)
-
-    def _save_to_firestore(self, prompt: str) -> None:
-        """Save prompt to Firestore if within size limits."""
-        try:
-            backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            if backend_dir not in sys.path:
-                sys.path.append(backend_dir)
-
-            try:
-                from app.services.firebase import save_emanuel_prompt
-            except ImportError:
-                from services.firebase import save_emanuel_prompt
-
-            if len(prompt.encode('utf-8')) > 1048000:
-                logger.warning("Prompt exceeds Firestore 1MB limit. Skipping Firestore save.")
-            else:
-                save_emanuel_prompt(prompt)
-                logger.info("Prompt saved to Firestore")
-
-        except Exception as e:
-            logger.error(f"Failed to save to Firestore: {e}")
 
     def log_current_gemini_state(self, stage="CURRENT"):
         """
@@ -579,8 +585,8 @@ class ScraperService:
         # Run async scraping
         summary = asyncio.run(self._run_async(sites))
 
-        # Compile prompt and update stores
-        self.compile_prompt()
+        # Compile cache to JSONL and upload to Gemini
+        summary["records_compiled"] = self.compile_jsonl()
         self.update_gemini_store()
 
         end_time = time.time()
@@ -595,26 +601,18 @@ class ScraperService:
 
 
 # Convenience function for sync contexts
-def run_scraper(
-    cache_dir: str = "backend/cache",
-    prompt_file: str = "backend/emanuel_prompt.txt"
-) -> dict:
+def run_scraper(cache_dir: str = "backend/cache") -> dict:
     """Run the scraper with specified configuration."""
-    scraper = ScraperService(cache_dir=cache_dir, prompt_file=prompt_file)
+    scraper = ScraperService(cache_dir=cache_dir)
     return scraper.run()
 
 
 if __name__ == "__main__":
     # Detect working directory and adjust paths
     cwd = os.getcwd()
-    if cwd.endswith("backend"):
-        cache_dir = "cache"
-        prompt_file = "emanuel_prompt.txt"
-    else:
-        cache_dir = "backend/cache"
-        prompt_file = "backend/emanuel_prompt.txt"
+    cache_dir = "cache" if cwd.endswith("backend") else "backend/cache"
 
-    result = run_scraper(cache_dir=cache_dir, prompt_file=prompt_file)
+    result = run_scraper(cache_dir=cache_dir)
     print(f"\n{'='*50}")
     print("Scraping Summary:")
     print(f"  Sites: {len(result['sites_scraped'])}")
