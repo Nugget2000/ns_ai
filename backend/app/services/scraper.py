@@ -383,7 +383,7 @@ class ScraperService:
                     content = _clean_unicode("\n".join(content_lines).strip())
 
                     # Use first non-empty content line as title
-                    title = next((l for l in content_lines if l.strip()), url)
+                    title = next((line for line in content_lines if line.strip()), url)
                     title = _clean_unicode(title.strip())[:200]  # cap length
 
                     # Derive tags from domain
@@ -536,7 +536,7 @@ class ScraperService:
             # Gemini indexes the file asynchronously — done=None until indexing completes
             # which can take several minutes. We don't block here; the store will be ready
             # once Gemini finishes processing in the background.
-            logger.info(f"Upload submitted. Gemini is indexing asynchronously.")
+            logger.info("Upload submitted. Gemini is indexing asynchronously.")
             logger.info(f"Operation: {operation.name}")
 
             # log state after
