@@ -13,6 +13,7 @@ import {
 } from '../api';
 import { useSettings } from '../contexts/SettingsContext';
 import SessionDetailModal from '../components/SessionDetailModal';
+import { Loader2 } from 'lucide-react';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
@@ -23,6 +24,7 @@ const AdminPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [expandedUser, setExpandedUser] = useState<string | null>(null);
     const [userSessions, setUserSessions] = useState<Session[]>([]);
+    const [updatingRole, setUpdatingRole] = useState<{ uid: string; role: string } | null>(null);
     const [sessionsLoading, setSessionsLoading] = useState(false);
     const [selectedSession, setSelectedSession] = useState<string | null>(null);
     const [sessionEvents, setSessionEvents] = useState<SessionEvent[]>([]);
@@ -55,12 +57,16 @@ const AdminPage: React.FC = () => {
     }, []);
 
     const handleRoleChange = async (uid: string, newRole: string) => {
+        setUpdatingRole({ uid, role: newRole });
         try {
             await updateUserRole(uid, newRole);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
         } catch (err) {
             console.error('Failed to update status', err);
             alert('Failed to update status');
+        } finally {
+            setUpdatingRole(null);
         }
     };
 
@@ -165,21 +171,28 @@ const AdminPage: React.FC = () => {
                                                         <button
                                                             onClick={() => handleRoleChange(user.uid, 'user')}
                                                             className="btn-action btn-approve"
-                                                            disabled={user.role === 'user'}
+                                                            disabled={user.role === 'user' || updatingRole?.uid === user.uid}
+                                                            aria-busy={updatingRole?.uid === user.uid && updatingRole?.role === 'user'}
                                                         >
+                                                            {updatingRole?.uid === user.uid && updatingRole?.role === 'user' && <Loader2 size={14} className="spinner" />}
                                                             Approve
                                                         </button>
                                                         <button
                                                             onClick={() => handleRoleChange(user.uid, 'pending')}
                                                             className="btn-action btn-suspend"
-                                                            disabled={user.role === 'pending'}
+                                                            disabled={user.role === 'pending' || updatingRole?.uid === user.uid}
+                                                            aria-busy={updatingRole?.uid === user.uid && updatingRole?.role === 'pending'}
                                                         >
+                                                            {updatingRole?.uid === user.uid && updatingRole?.role === 'pending' && <Loader2 size={14} className="spinner" />}
                                                             Suspend
                                                         </button>
                                                         <button
                                                             onClick={() => handleRoleChange(user.uid, 'admin')}
                                                             className="btn-action btn-admin"
+                                                            disabled={updatingRole?.uid === user.uid}
+                                                            aria-busy={updatingRole?.uid === user.uid && updatingRole?.role === 'admin'}
                                                         >
+                                                            {updatingRole?.uid === user.uid && updatingRole?.role === 'admin' && <Loader2 size={14} className="spinner" />}
                                                             Make Admin
                                                         </button>
                                                     </>
