@@ -2,6 +2,7 @@
 Admin API endpoints for user activity monitoring.
 """
 
+import logging
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
@@ -50,7 +51,8 @@ async def get_users_with_activity(user: UserResponse = Depends(get_admin_user)):
         result.sort(key=lambda x: x.last_activity or "", reverse=True)
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/users/{uid}/sessions", response_model=List[SessionResponse])
@@ -63,7 +65,8 @@ async def get_user_sessions(uid: str, user: UserResponse = Depends(get_admin_use
         sessions = activity_logging.get_user_sessions(uid)
         return [SessionResponse(**session) for session in sessions]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/sessions/{session_id}/events", response_model=List[SessionEventResponse])
@@ -76,4 +79,5 @@ async def get_session_events(session_id: str, user: UserResponse = Depends(get_a
         events = activity_logging.get_session_events(session_id)
         return [SessionEventResponse(**event) for event in events]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

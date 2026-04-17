@@ -46,7 +46,7 @@ async def increment_visitor_count() -> int:
 
         logging.error(f"Error incrementing visitor count: {e}")
         logging.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 def save_emanuel_prompt(prompt_text: str):
     """

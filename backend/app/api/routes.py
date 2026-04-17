@@ -1,5 +1,6 @@
 from typing import List
 
+import logging
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -31,7 +32,8 @@ async def track_page_load():
         count = await increment_visitor_count()
         return {"count": count}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 class ChatRequest(BaseModel):
     message: str
@@ -115,7 +117,8 @@ async def get_file_store_info_endpoint(user: dict = Depends(get_active_user)):
         info = get_file_store_info()
         return info
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/scrape")
 async def run_scraper(user: dict = Depends(get_active_user)):
@@ -143,4 +146,5 @@ async def run_scraper(user: dict = Depends(get_active_user)):
         summary = scraper.run()
         return summary
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
