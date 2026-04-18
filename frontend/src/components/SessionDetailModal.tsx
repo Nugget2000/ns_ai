@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { type SessionEvent } from '../api';
 import { useSettings } from '../contexts/SettingsContext';
 import './SessionDetailModal.css';
@@ -22,13 +22,30 @@ const getEventIcon = (eventType: string): string => {
 
 const SessionDetailModal: React.FC<SessionDetailModalProps> = ({ events, onClose, sessionId }) => {
     const { formatDateTime } = useSettings();
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
+            >
                 <div className="modal-header">
-                    <h2>Session Events</h2>
+                    <h2 id="modal-title">Session Events</h2>
                     <span className="session-id">ID: {sessionId.slice(0, 8)}...</span>
-                    <button className="close-btn" onClick={onClose}>×</button>
+                    <button className="close-btn" onClick={onClose} aria-label="Close modal">×</button>
                 </div>
 
                 <div className="events-timeline">
