@@ -243,14 +243,18 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
             "error": "Could not connect to Nightscout. Check your URL."
         }
     except requests.exceptions.RequestException as e:
+        import logging
+        logging.error("Request failed during nightscout connection test", exc_info=True)
         return {
             "success": False,
-            "error": f"Request failed: {str(e)}"
+            "error": "Request failed"
         }
     except Exception as e:
+        import logging
+        logging.error("Unexpected error during nightscout connection test", exc_info=True)
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}"
+            "error": "Unexpected error occurred"
         }
 
 

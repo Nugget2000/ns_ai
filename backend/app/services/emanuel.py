@@ -138,6 +138,8 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
         print("Done")
         
     except Exception as e:
+        import logging
+        logging.error("Error in generate_emanuel_response", exc_info=True)
         print(f"Error: {e}")
         print(traceback.format_exc())
-        yield json.dumps({"type": "error", "text": str(e)}) + "\n"
+        yield json.dumps({"type": "error", "text": "An internal error occurred while generating the response."}) + "\n"

@@ -84,10 +84,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
             headers={"WWW-Authenticate": "Bearer"},
         )
     except Exception as e:
+        import logging
+        logging.error("Authentication error", exc_info=True)
         # Catch other errors (e.g., certificate fetch failed)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Authentication failed: {str(e)}",
+            detail="Authentication failed due to an internal error",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
