@@ -1,5 +1,6 @@
 import os
 import traceback
+import logging
 
 from google import genai
 from google.genai import types
@@ -138,6 +139,5 @@ async def generate_emanuel_response(prompt: str) -> AsyncGenerator[str, None]:
         print("Done")
         
     except Exception as e:
-        print(f"Error: {e}")
-        print(traceback.format_exc())
-        yield json.dumps({"type": "error", "text": str(e)}) + "\n"
+        logging.error(f"Error in generate_emanuel_response: {e}", exc_info=True)
+        yield json.dumps({"type": "error", "text": "An internal error occurred while generating the response."}) + "\n"
