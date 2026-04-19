@@ -5,3 +5,7 @@
 ## 2024-05-22 - Granular Async Button Feedback
 **Learning:** List item actions (like table rows) require isolated loading states so users know *which* item is processing, rather than relying on a global spinner or silent failure/success. Disabling the specific action buttons dynamically avoids duplicate clicks in flight.
 **Action:** Always maintain a granular async state (e.g., `updatingId`) when managing lists with individual action buttons, and apply `aria-busy` and `.spinner` feedback directly to the triggered button.
+
+## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
+**Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
+**Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
