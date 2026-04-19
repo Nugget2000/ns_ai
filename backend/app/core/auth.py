@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import firebase_admin
 from firebase_admin import auth
 from datetime import datetime, timedelta
@@ -85,9 +86,10 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         )
     except Exception as e:
         # Catch other errors (e.g., certificate fetch failed)
+        logging.error(f"Authentication failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Authentication failed: {str(e)}",
+            detail="Internal error during authentication",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
