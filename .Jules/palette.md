@@ -9,3 +9,7 @@
 ## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
 **Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
 **Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
+
+## 2026-04-20 - Accessible Error Messages
+**Learning:** Dynamic error messages in forms and settings were lacking ARIA alerts, meaning screen reader users wouldn't know an error occurred unless they navigated to find it.
+**Action:** Add `role="alert"` and `aria-live="polite"` to all dynamic `.error-message` and `.settings-error` containers so they are automatically announced when they appear.

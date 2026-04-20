@@ -267,7 +267,7 @@ const SettingsPage: React.FC = () => {
                             </button>
 
                             {nightscoutTestResult && (
-                                <div className={`test-result ${nightscoutTestResult.success ? 'success' : 'error'}`}>
+                                <div className={`test-result ${nightscoutTestResult.success ? 'success' : 'error'}`} role="alert" aria-live="polite">
                                     {nightscoutTestResult.success ? (
                                         <>
                                             <CheckCircle size={18} />
@@ -333,7 +333,7 @@ const SettingsPage: React.FC = () => {
 
                 {/* Save Button */}
                 <div className="settings-actions">
-                    {error && <div className="settings-error">{error}</div>}
+                    {error && <div className="settings-error" role="alert" aria-live="polite">{error}</div>}
                     <button
                         className={`save-button ${saved ? 'saved' : ''} ${!hasChanges ? 'disabled' : ''}`}
                         onClick={handleSave}
