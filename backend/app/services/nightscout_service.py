@@ -1,5 +1,7 @@
 import requests
 import logging
+import socket
+import ipaddress
 from typing import Optional, List
 from pydantic import ValidationError
 from datetime import datetime, timedelta
@@ -160,6 +162,34 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
         from urllib.parse import urlparse, parse_qs, urlunparse
         
         parsed = urlparse(nightscout_url)
+
+        if parsed.scheme not in ("http", "https"):
+            return {
+                "success": False,
+                "error": "Invalid URL scheme. Must be http or https."
+            }
+
+        hostname = parsed.hostname
+        if not hostname:
+            return {
+                "success": False,
+                "error": "Invalid URL format."
+            }
+
+        try:
+            ip_str = socket.gethostbyname(hostname)
+            ip_obj = ipaddress.ip_address(ip_str)
+            if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast:
+                return {
+                    "success": False,
+                    "error": "URL resolves to a restricted internal IP address."
+                }
+        except socket.gaierror:
+            return {
+                "success": False,
+                "error": "Could not resolve hostname."
+            }
+
         query_params = parse_qs(parsed.query)
         
         # Extract token from query params
