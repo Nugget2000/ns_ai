@@ -135,7 +135,7 @@ const AdminPage: React.FC = () => {
                     </div>
                 </div>
 
-                {error && <div className="error-message">{error}</div>}
+                {error && <div className="error-message" role="alert" aria-live="polite">{error}</div>}
 
                 {activeTab === 'users' && (
                     <div className="table-container">
