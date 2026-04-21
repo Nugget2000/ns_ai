@@ -1,5 +1,8 @@
 import requests
 import logging
+import socket
+import ipaddress
+from urllib.parse import urlparse
 from typing import Optional, List
 from pydantic import ValidationError
 from datetime import datetime, timedelta
@@ -10,6 +13,25 @@ from ..core.cache import get_cache, set_cache
 from ..core.config import settings
 
 
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+
+        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast:
+            return False
+
+        return True
+    except Exception:
+        return False
 
 
 def get_nightscout_entries(
@@ -34,6 +56,10 @@ def get_nightscout_entries(
     Returns:
         A list of validated Entry objects, or None if an error occurred.
     """
+
+    if not is_safe_url(nightscout_url):
+        logging.warning(f"Invalid or unsafe URL provided for entries: {nightscout_url}")
+        return None
 
     from_date_dt = datetime.fromisoformat(from_date) - timedelta(hours=1)
     to_date_dt = datetime.fromisoformat(to_date) - timedelta(hours=1)
@@ -103,6 +129,10 @@ def get_nightscout_treatments(
     Returns:
         A list of validated Treatment objects, or None if an error occurred.
     """
+    if not is_safe_url(nightscout_url):
+        logging.warning(f"Invalid or unsafe URL provided for treatments: {nightscout_url}")
+        return None
+
     from_date_dt = datetime.fromisoformat(from_date) - timedelta(hours=1)
     to_date_dt = datetime.fromisoformat(to_date) - timedelta(hours=1)
 
@@ -155,6 +185,12 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
         - time_ago: human-readable time ago string (if success)
         - error: error message (if not success)
     """
+    if not is_safe_url(nightscout_url):
+        return {
+            "success": False,
+            "error": "Invalid or unsafe URL provided. Only public HTTP/HTTPS URLs are allowed."
+        }
+
     try:
         # Parse the URL to extract base URL and token
         from urllib.parse import urlparse, parse_qs, urlunparse
