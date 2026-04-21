@@ -197,10 +197,15 @@ const EmanuelPage: React.FC = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         a: ({ node, ...props }) => <a {...props} style={{ color: '#60a5fa', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         p: ({ node, ...props }) => <p {...props} style={{ marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ul: ({ node, ...props }) => <ul {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         ol: ({ node, ...props }) => <ol {...props} style={{ paddingLeft: '20px', marginBottom: '10px' }} />,
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                         code: ({ node, ...props }) => {
                                             const match = /language-(\w+)/.exec(props.className || '')
                                             return match ? (
@@ -242,6 +247,8 @@ const EmanuelPage: React.FC = () => {
                         }
                     }}
                     placeholder="Ask about Nightscout or Loop..."
+                    aria-label="Message input"
+                    title="Press Enter to send, Shift+Enter for new line"
                     disabled={isLoading}
                     rows={2}
                     style={{
@@ -270,6 +277,9 @@ const EmanuelPage: React.FC = () => {
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
+                    aria-label={isLoading ? 'Sending message' : 'Send message'}
+                    aria-busy={isLoading}
+                    title={isLoading ? 'Thinking...' : (!input.trim() ? 'Type a message to send' : 'Send message')}
                     style={{
                         padding: '16px 40px',
                         borderRadius: '20px',
