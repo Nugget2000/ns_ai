@@ -9,3 +9,6 @@
 ## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
 **Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
 **Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
+## 2024-03-24 - explicit ARIA states and keyboard shortcut tooltips in custom chat interfaces
+**Learning:** Custom chat interfaces often miss critical UX/accessibility features that standard form elements provide automatically. Adding `aria-label`, `aria-busy`, and `title` attributes (for keyboard shortcut hints like "Press Enter to send") drastically improves usability for screen reader and keyboard-only users by providing explicit state feedback and discovering shortcuts.
+**Action:** Always include explicit ARIA labels, `aria-busy` states on loading buttons, and keyboard shortcut hints via `title` attributes on custom input components to ensure a fully accessible and intuitive interaction.
