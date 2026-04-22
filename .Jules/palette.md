@@ -9,3 +9,7 @@
 ## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
 **Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
 **Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
+
+## 2026-04-22 - Proper Use of aria-busy
+**Learning:** Buttons with loading states must have an `aria-busy` attribute accurately reflecting the active asynchronous operation. This ensures assistive technology effectively communicates to users that an operation is pending on that specific interactive element.
+**Action:** Whenever a button receives a `disabled` property or a spinner component due to an asynchronous loading state, it must also include `aria-busy={isLoading}`.
