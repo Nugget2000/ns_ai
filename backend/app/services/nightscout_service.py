@@ -8,6 +8,7 @@ from ..models.entry import Entry
 from ..models.treatment import Treatment
 from ..core.cache import get_cache, set_cache
 from ..core.config import settings
+from ..core.security import validate_url_for_ssrf, SSRFVulnerabilityError
 
 
 
@@ -74,6 +75,7 @@ def get_nightscout_entries(
         validated_entries = [Entry.model_validate(entry_data) for entry_data in entries_data]
         return validated_entries
 
+
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data from Nightscout: {e}")
         return None
@@ -131,6 +133,7 @@ def get_nightscout_treatments(
         validated_treatments = [Treatment.model_validate(treatment_data) for treatment_data in treatments_data]
         return validated_treatments
 
+
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data from Nightscout: {e}")
         return None
@@ -156,6 +159,9 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
         - error: error message (if not success)
     """
     try:
+        # Prevent SSRF
+        validate_url_for_ssrf(nightscout_url)
+
         # Parse the URL to extract base URL and token
         from urllib.parse import urlparse, parse_qs, urlunparse
         
@@ -233,6 +239,12 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
             "time_ago": time_ago
         }
         
+    except SSRFVulnerabilityError as e:
+        logging.warning(f"SSRF validation failed: {e}")
+        return {
+            "success": False,
+            "error": "Invalid URL or security policy violation."
+        }
     except requests.exceptions.Timeout:
         return {
             "success": False,
@@ -243,6 +255,7 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
             "success": False,
             "error": "Could not connect to Nightscout. Check your URL."
         }
+
     except requests.exceptions.RequestException as e:
         logging.error(f"Request failed in test_nightscout_connection: {e}", exc_info=True)
         return {
