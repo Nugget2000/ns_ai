@@ -255,6 +255,7 @@ const SettingsPage: React.FC = () => {
                                     }
                                 }}
                                 disabled={testingNightscout || !nightscoutUrl}
+                                aria-busy={testingNightscout}
                             >
                                 {testingNightscout ? (
                                     <>
@@ -338,6 +339,7 @@ const SettingsPage: React.FC = () => {
                         className={`save-button ${saved ? 'saved' : ''} ${!hasChanges ? 'disabled' : ''}`}
                         onClick={handleSave}
                         disabled={saving || !hasChanges}
+                        aria-busy={saving}
                     >
                         {saving ? (
                             <>Saving...</>

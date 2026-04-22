@@ -270,6 +270,7 @@ const EmanuelPage: React.FC = () => {
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
+                    aria-busy={isLoading}
                     style={{
                         padding: '16px 40px',
                         borderRadius: '20px',
