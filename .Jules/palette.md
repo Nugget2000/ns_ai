@@ -9,3 +9,7 @@
 ## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
 **Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
 **Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
+
+## 2024-05-23 - Keyboard Shortcut Tooltips
+**Learning:** Hidden keyboard shortcuts (like `Enter` to send, `Shift+Enter` for new line) inside chat or form interfaces create a discoverability issue. Users might assume they must click the "Send" button.
+**Action:** When creating textareas or buttons with custom keyboard interactions, always add native hover tooltips via the `title` attribute (e.g., `title="Press Enter to send, Shift+Enter for new line"`) to improve discoverability without cluttering the visible UI.
