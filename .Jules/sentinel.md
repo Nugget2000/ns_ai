@@ -2,3 +2,8 @@
 **Vulnerability:** Found multiple instances where FastAPI endpoints were catching generic exceptions and returning their string representation (`detail=str(e)`) in `HTTPException` responses.
 **Learning:** This pattern is a CWE-209 (Generation of Error Message Containing Sensitive Information) vulnerability. Exposing internal exception details like stack traces, SQL syntax errors, or internal service states to the client provides attackers with insights into the backend architecture and potential exploitation vectors.
 **Prevention:** Always log the full exception securely on the server-side using `logging.error(..., exc_info=True)` for debugging purposes, and return a generic, sanitized message (e.g., "Internal server error") to the client via the HTTP response.
+
+## 2025-02-27 - Prevent Server-Side Request Forgery (SSRF) in Nightscout API integrations
+**Vulnerability:** Found multiple functions in `backend/app/services/nightscout_service.py` making `requests.get()` calls using user-configurable URL endpoints without any validation against internal/private IP addresses or dangerous URI schemes.
+**Learning:** This is an SSRF vulnerability where attackers could supply a URL pointing to internal services (e.g., `http://localhost:8080/admin` or `http://169.254.169.254` for cloud metadata) and trick the backend server into sending requests on their behalf, bypassing firewalls and potentially exposing sensitive internal systems or cloud credentials.
+**Prevention:** Always parse and resolve user-supplied URLs before making outbound requests. Validate that the scheme is `http` or `https`, resolve the hostname to an IP address, and verify that the IP is not private, link-local, loopback, or multicast before allowing the request.

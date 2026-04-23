@@ -1,5 +1,8 @@
 import requests
 import logging
+import socket
+import ipaddress
+from urllib.parse import urlparse
 from typing import Optional, List
 from pydantic import ValidationError
 from datetime import datetime, timedelta
@@ -10,6 +13,29 @@ from ..core.cache import get_cache, set_cache
 from ..core.config import settings
 
 
+def is_safe_url(url_str: str) -> bool:
+    """
+    Validates that a URL does not point to internal/private IP addresses
+    to prevent Server-Side Request Forgery (SSRF) attacks.
+    """
+    try:
+        parsed = urlparse(url_str)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+
+        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast:
+            return False
+
+        return True
+    except Exception:
+        return False
 
 
 def get_nightscout_entries(
@@ -56,7 +82,12 @@ def get_nightscout_entries(
             "find[dateString][$lte]": to_date_str
         }
         request_url = f"{nightscout_url}/api/v1/entries.json?token={api_token}"
-        response = requests.get(request_url, params=params)
+
+        if not is_safe_url(request_url):
+            logging.error(f"SSRF attempt blocked for URL: {request_url}")
+            return None
+
+        response = requests.get(request_url, params=params, allow_redirects=False)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         entries_data = response.json()
@@ -121,7 +152,12 @@ def get_nightscout_treatments(
             "find[created_at][$lte]": to_date_str
         }
         request_url = f"{nightscout_url}/api/v1/treatments.json?token={api_token}"
-        response = requests.get(request_url, params=params)
+
+        if not is_safe_url(request_url):
+            logging.error(f"SSRF attempt blocked for URL: {request_url}")
+            return None
+
+        response = requests.get(request_url, params=params, allow_redirects=False)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         treatments_data = response.json()
@@ -181,7 +217,14 @@ def test_nightscout_connection(nightscout_url: str) -> dict:
         
         # Fetch latest entry
         request_url = f"{base_url}/api/v1/entries.json?token={token}&count=1"
-        response = requests.get(request_url, timeout=10)
+
+        if not is_safe_url(request_url):
+            return {
+                "success": False,
+                "error": "Invalid or blocked URL"
+            }
+
+        response = requests.get(request_url, timeout=10, allow_redirects=False)
         
         if response.status_code == 401:
             return {
