@@ -242,6 +242,7 @@ const EmanuelPage: React.FC = () => {
                         }
                     }}
                     placeholder="Ask about Nightscout or Loop..."
+                    title="Press Enter to send, Shift+Enter for new line"
                     disabled={isLoading}
                     rows={2}
                     style={{
@@ -270,6 +271,7 @@ const EmanuelPage: React.FC = () => {
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
+                    title="Press Enter to send"
                     style={{
                         padding: '16px 40px',
                         borderRadius: '20px',
