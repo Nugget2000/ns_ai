@@ -333,7 +333,7 @@ const SettingsPage: React.FC = () => {
 
                 {/* Save Button */}
                 <div className="settings-actions">
-                    {error && <div className="settings-error">{error}</div>}
+                    {error && <div className="settings-error" role="alert" aria-live="assertive">{error}</div>}
                     <button
                         className={`save-button ${saved ? 'saved' : ''} ${!hasChanges ? 'disabled' : ''}`}
                         onClick={handleSave}

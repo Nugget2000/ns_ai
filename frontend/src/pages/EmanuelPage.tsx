@@ -241,7 +241,7 @@ const EmanuelPage: React.FC = () => {
                             sendMessage();
                         }
                     }}
-                    placeholder="Ask about Nightscout or Loop..."
+                    placeholder="Ask about Nightscout or Loop..." title="Press Enter to send, Shift+Enter for new line"
                     disabled={isLoading}
                     rows={2}
                     style={{
