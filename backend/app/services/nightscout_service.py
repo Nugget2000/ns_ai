@@ -56,7 +56,7 @@ def get_nightscout_entries(
             "find[dateString][$lte]": to_date_str
         }
         request_url = f"{nightscout_url}/api/v1/entries.json?token={api_token}"
-        response = requests.get(request_url, params=params)
+        response = requests.get(request_url, params=params, timeout=10)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         entries_data = response.json()
@@ -121,7 +121,7 @@ def get_nightscout_treatments(
             "find[created_at][$lte]": to_date_str
         }
         request_url = f"{nightscout_url}/api/v1/treatments.json?token={api_token}"
-        response = requests.get(request_url, params=params)
+        response = requests.get(request_url, params=params, timeout=10)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         treatments_data = response.json()
