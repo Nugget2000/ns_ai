@@ -235,6 +235,8 @@ const EmanuelPage: React.FC = () => {
                 <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    title="Press Enter to send, Shift+Enter for a new line"
+                    aria-label="Ask about Nightscout or Loop"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -270,6 +272,8 @@ const EmanuelPage: React.FC = () => {
                 <button
                     onClick={sendMessage}
                     disabled={isLoading || !input.trim()}
+                    aria-label="Send message"
+                    title="Send message (Enter)"
                     style={{
                         padding: '16px 40px',
                         borderRadius: '20px',

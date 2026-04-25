@@ -9,3 +9,7 @@
 ## 2023-10-27 - [SessionDetailModal Accessibility Improvements]
 **Learning:** Adding accessibility to a custom modal is essential. We must implement base accessibility primitives including `role='dialog'`, `aria-modal='true'`, an `aria-labelledby` linking to the title, an `aria-label` on the close button, and an `Escape` key event listener for keyboard closure to allow proper use by screen readers and keyboard navigation.
 **Action:** When creating new modals, always use semantic ARIA roles and labels, and provide `Escape` key to close functionality.
+
+## 2024-05-23 - Discoverability of Hidden Interactions
+**Learning:** UI elements with custom or hidden keyboard interactions (like "Shift+Enter" to send messages in chat interfaces) lack discoverability unless explicitly documented.
+**Action:** When adding custom keyboard shortcuts to inputs or buttons, include a `title` attribute to provide discoverable native hover tooltips exposing the shortcut.
